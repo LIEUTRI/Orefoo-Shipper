@@ -4,4 +4,13 @@
     <string name="test_email">test@test.com</string>
     <string name="test_password">testpassword</string>
     <string name="firebase_path">location</string>
+    <string name="order">Đơn hàng</string>
+    <string name="manager">Quản lý</string>
+    <string name="revenue">Thu nhập</string>
+    <string name="me">Tôi</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="receive_order">Nhận đơn</string>
+    <string name="receiving_orders">Đang nhận đơn</string>
+    <string name="not_receiving_orders">Dừng nhận đơn</string>
 </resources>
