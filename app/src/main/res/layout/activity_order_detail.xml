@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/extra_light_gray"
+    tools:context=".OrderDetailActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorPrimaryDark"
+        android:id="@+id/layoutAppBar">
+        <com.google.android.material.appbar.MaterialToolbar
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:title="@string/order_info"
+            app:titleTextColor="#FFFFFF"
+            app:navigationIcon="@drawable/ic_arrow_back_ios_24"
+            android:id="@+id/toolbar">
+        </com.google.android.material.appbar.MaterialToolbar>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/layoutAppBar"
+        android:layout_above="@id/layoutButtons"
+        android:padding="10dp"
+        android:id="@+id/layoutProgressBar">
+        <ImageView
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:id="@+id/ivBranch"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/ivBranch"
+            android:layout_alignTop="@id/ivBranch"
+            android:textSize="23sp"
+            android:fontFamily="sans-serif-black"
+            android:textColor="@android:color/holo_red_dark"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:id="@+id/tvBranchName"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/ivBranch"
+            android:layout_below="@id/tvBranchName"
+            android:textSize="15sp"
+            android:fontFamily="sans-serif-condensed-light"
+            android:textColor="#000000"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:maxLines="3"
+            android:drawablePadding="5dp"
+            android:id="@+id/tvAddress"
+            app:drawableStartCompat="@drawable/ic_location_on_24" />
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_alignParentBottom="true"
+        android:weightSum="2"
+        android:id="@+id/layoutButtons">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="@string/accept"
+            android:textSize="18sp"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/bg_btn_accept"
+            android:fontFamily="sans-serif-black"
+            android:id="@+id/tvAccept"
+            android:gravity="center"
+            android:padding="10dp"
+            app:drawableEndCompat="@drawable/ic_check_24" />
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="@string/reject"
+            android:textSize="18sp"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/bg_btn_reject"
+            android:fontFamily="sans-serif-black"
+            android:id="@+id/tvReject"
+            android:gravity="center"
+            android:padding="10dp"
+            app:drawableStartCompat="@drawable/ic_close_24" />
+    </LinearLayout>
+</RelativeLayout>

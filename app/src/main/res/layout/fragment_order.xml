@@ -5,6 +5,7 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/layoutProgressBar"
+    android:background="@color/extra_light_gray"
     tools:context=".Fragments.OrderFragment">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -57,5 +58,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/recyclerView"
+        android:padding="10dp"
         android:layout_below="@id/layoutAppBar"/>
 </RelativeLayout>
