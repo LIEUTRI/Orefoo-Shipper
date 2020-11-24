@@ -1,8 +1,8 @@
 package com.luanvan.shipper.components;
 
-import com.google.android.gms.maps.model.LatLng;
+import java.io.Serializable;
 
-public class Branch {
+public class Branch implements Serializable {
     private int id;
     private String name;
     private String phoneNumber;
@@ -10,7 +10,7 @@ public class Branch {
     private String openingTime;
     private String closingTime;
     private String address;
-    private LatLng latLng;
+    private double latitude, longitude;
     private boolean isSell;
     private int merchant;
     private String branchStatus;
@@ -24,7 +24,7 @@ public class Branch {
         this.address = address;
     }
 
-    public Branch(int id, String name, String phoneNumber, String imageUrl, String openingTime, String closingTime, String address, LatLng latLng, boolean isSell, int merchant, String branchStatus) {
+    public Branch(int id, String name, String phoneNumber, String imageUrl, String openingTime, String closingTime, String address, double latitude, double longitude, boolean isSell, int merchant, String branchStatus) {
         this.id = id;
         this.name = name;
         this.phoneNumber = phoneNumber;
@@ -32,7 +32,8 @@ public class Branch {
         this.openingTime = openingTime;
         this.closingTime = closingTime;
         this.address = address;
-        this.latLng = latLng;
+        this.latitude = latitude;
+        this.longitude = longitude;
         this.isSell = isSell;
         this.merchant = merchant;
         this.branchStatus = branchStatus;
@@ -118,11 +119,11 @@ public class Branch {
         return branchStatus;
     }
 
-    public void setLatLng(LatLng latLng) {
-        this.latLng = latLng;
+    public double getLatitude() {
+        return latitude;
     }
 
-    public LatLng getLatLng() {
-        return latLng;
+    public double getLongitude() {
+        return longitude;
     }
 }

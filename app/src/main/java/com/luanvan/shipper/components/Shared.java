@@ -11,4 +11,7 @@ public class Shared {
     public static final String KEY_FIRST_NAME = "KEY_FIRST_NAME";
     public static final String KEY_LAST_NAME = "KEY_LAST_NAME";
     public static final String KEY_USERNAME = "KEY_USERNAME";
+    public static final String KEY_USER_STATUS = "KEY_USER_STATUS";
+    public static final String KEY_LATITUDE = "latitude";
+    public static final String KEY_LONGITUDE = "longitude";
 }

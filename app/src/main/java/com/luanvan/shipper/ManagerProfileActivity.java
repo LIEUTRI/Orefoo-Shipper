@@ -14,10 +14,12 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.res.AssetFileDescriptor;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.graphics.drawable.Drawable;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -38,12 +40,18 @@ import android.widget.Toast;
 import com.auth0.android.jwt.Claim;
 import com.auth0.android.jwt.JWT;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.Target;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.luanvan.shipper.components.Debug;
 import com.luanvan.shipper.components.RequestCode;
 import com.luanvan.shipper.components.RequestUrl;
 import com.luanvan.shipper.components.Shared;
@@ -64,6 +72,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -80,9 +89,8 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
     private TextView tvSave;
     private ProgressBar progressBar;
     private RelativeLayout layoutProgressBar;
-    private EditText etFirstName, etLastName, etPhone, etEmail, etGender, etDOB, etAddress, etDriverLicense,etIdCardNumber;
-
-    private int requestCode;
+    private EditText etFirstName, etLastName, etPhone, etEmail, etGender, etDOB, etDriverLicense,etIdCardNumber;
+    private TextView tvName, tvPhone, tvUserStatus;
 
     private Uri uriSavedImageFront, uriSavedImageBack;
     private Uri uriProfile;
@@ -102,6 +110,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
     private static String TEMP_IMAGE_NAME_PROFILE;
 
     private String token;
+    private String userStatus;
     private int shipperId;
     private String username;
     private String firstName;
@@ -117,6 +126,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
     private String profileImage;
 
     public final String TAG = "ManagerProfileActivity";
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -138,9 +148,11 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
         etPhone = findViewById(R.id.etPhone);
         etEmail = findViewById(R.id.etEmail);
         etGender = findViewById(R.id.etGender);
-        etAddress = findViewById(R.id.etAddress);
         etDriverLicense = findViewById(R.id.etDriverLicense);
         etIdCardNumber = findViewById(R.id.etIdCardNumber);
+        tvName = findViewById(R.id.tvName);
+        tvPhone = findViewById(R.id.tvPhone);
+        tvUserStatus = findViewById(R.id.tvUserStatus);
 
         shipperId = getIntent().getIntExtra("id", -1);
         username = getIntent().getStringExtra("username");
@@ -156,14 +168,19 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
         idCardBack = getIntent().getStringExtra("idCardBack");
         profileImage = getIntent().getStringExtra("profileImage");
 
+        tvName.setText(lastName +" "+ firstName);
+        tvPhone.setText(phoneNumber);
+
         // set Profile image
         ivProfile.setImageResource(R.drawable.ic_person_24);
         ivProfile.setCircleBackgroundColorResource(R.color.light_gray);
-//        RequestOptions options = new RequestOptions()
-//                .centerCrop()
-//                .placeholder(R.drawable.ic_person_24)
-//                .error(R.drawable.ic_person_24);
-//        Glide.with(this).load(profileImage).apply(options).into(ivProfile);
+        if (profileImage.length() > 1){
+            RequestOptions options = new RequestOptions()
+                    .centerCrop()
+                    .placeholder(R.drawable.ic_person_24)
+                    .error(R.drawable.ic_person_24);
+            Glide.with(this).load(profileImage).apply(options).into(ivProfile);
+        }
 
         ivChangePhoto.setImageResource(R.drawable.ic_edit_20);
         ivChangePhoto.setCircleBackgroundColorResource(R.color.colorPrimary);
@@ -177,16 +194,73 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
         etDriverLicense.setText(driverLicense);
         etIdCardNumber.setText(idCardNumber);
 
-//        try {
-//            Glide.with(this).load(idCardFront).into(ivSlotFront);
-//            Glide.with(this).load(idCardBack).into(ivSlotBack);
-//        } catch (Exception e){
-//            e.printStackTrace();
-//        }
+        try {
+            calendar = Calendar.getInstance();
+            calendar.setTime(new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).parse(dayOfBirth));
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH);
+            etDOB.setText(simpleDateFormat.format(calendar.getTime()));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        if (idCardFront.length() > 1){
+            Glide.with(this)
+                .load(idCardFront)
+                .listener(new RequestListener<Drawable>() {
+                    @Override
+                    public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                        ivSlotFront.setVisibility(View.VISIBLE);
+                        ivRemoveImageFront.setVisibility(View.VISIBLE);
+                        return false;
+                    }
+                })
+                .into(ivSlotFront);
+        }
+
+        if (idCardBack.length() > 1){
+            Glide.with(this)
+                .load(idCardBack)
+                .listener(new RequestListener<Drawable>() {
+                    @Override
+                    public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                        ivSlotBack.setVisibility(View.VISIBLE);
+                        ivRemoveImageBack.setVisibility(View.VISIBLE);
+                        return false;
+                    }
+                })
+                .into(ivSlotBack);
+        }
+
         /////////////////////////////////////////////////////////////////////////
 
         SharedPreferences sharedPreferences = getSharedPreferences(Shared.TOKEN, Context.MODE_PRIVATE);
         token = sharedPreferences.getString(Shared.KEY_BEARER, "")+"";
+        Log.i(TAG, token);
+
+        // verification //////////////////////////////////////////////////////////////
+        sharedPreferences = getSharedPreferences(Shared.SHIPPER, Context.MODE_PRIVATE);
+        userStatus = sharedPreferences.getString(Shared.KEY_USER_STATUS, "");
+
+        if (userStatus.equals("verified")){
+            tvUserStatus.setTextColor(getColor(R.color.green));
+            tvUserStatus.setText(getString(R.string.verified));
+        } else if (userStatus.equals("waiting_verify")){
+            tvUserStatus.setTextColor(getColor(R.color.orange));
+            tvUserStatus.setText(getString(R.string.waiting_verify));
+        } else {
+            tvUserStatus.setTextColor(getColor(R.color.light_red));
+            tvUserStatus.setText(getString(R.string.no_verified));
+        }
 
         /////////////////////////////////////////////////////////////////////////
         FirebaseStorage storage = FirebaseStorage.getInstance();
@@ -205,6 +279,8 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
                 calendar.set(Calendar.MONTH, month);
                 calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
                 updateUIDate();
+
+                dayOfBirth = year+"-"+month+"-"+dayOfMonth;
             }
 
             private void updateUIDate() {
@@ -280,6 +356,14 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
                 break;
 
             case R.id.tvSave:
+                progressBar.setVisibility(View.VISIBLE);
+
+                if (uriProfile == null && uriSavedImageFront == null && uriSavedImageBack == null){
+                    //mean not change image
+                    new UpdateProfileTask().execute();
+                    return;
+                }
+
                 uploadImage(uriProfile, TEMP_IMAGE_NAME_PROFILE);
 
                 if (ivSlotFront.getDrawable() == null || ivSlotBack.getDrawable() == null){
@@ -309,66 +393,6 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
                 intentChooser = getPickImageIntent(ManagerProfileActivity.this);
                 startActivityForResult(intentChooser, RequestCode.REQUEST_PICK_PROFILE_IMAGE);
                 break;
-        }
-    }
-
-    public Uri getUriToSaveImage(String imageName){
-        // create images dir
-        File directory = new File(Environment.getExternalStorageDirectory()+"/Android/media/"+getPackageName()+"/images");
-        if (!directory.exists()){
-            if (directory.mkdirs()){
-                Log.i("ManagerProfileActivity", "filePath: "+directory.getAbsolutePath());
-            }
-        }
-
-        // create image file
-        File imagesDir = new File(directory+"/"+imageName);
-        if (!imagesDir.exists()){
-            try {
-                if (imagesDir.createNewFile()){
-                    Log.i("ManagerProfileActivity", "file created");
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        return Uri.fromFile(imagesDir);
-    }
-
-    public void takePictureFromCamera(int requestCode){
-        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.CAMERA}, RequestCode.REQUEST_TAKE_PICTURE_FROM_CAMERA);
-            return;
-        }
-
-        Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-
-        switch (requestCode){
-            case RequestCode.REQUEST_TAKE_PICTURE_1_FROM_CAMERA:
-                uriSavedImageFront = getUriToSaveImage("shipper"+shipperId+"_front"+".jpg");
-                cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, uriSavedImageFront);
-                break;
-            case RequestCode.REQUEST_TAKE_PICTURE_2_FROM_CAMERA:
-                uriSavedImageBack = getUriToSaveImage("shipper"+shipperId+"_back"+".jpg");
-                cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, uriSavedImageBack);
-                break;
-        }
-        startActivityForResult(cameraIntent, requestCode);
-    }
-    public void takePictureFromGallery(int requestCode){
-
-        if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, RequestCode.REQUEST_PICK_PICTURE_FROM_GALLERY);
-            this.requestCode = requestCode;
-        } else {
-            if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
-                Toast.makeText(ManagerProfileActivity.this, "permission denied", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-            startActivityForResult(galleryIntent, requestCode);
         }
     }
 
@@ -424,23 +448,6 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
         }
     }
 
-    private boolean copyFile(File src,File dst)throws IOException{
-        if (src.getAbsolutePath().equals(dst.getAbsolutePath())) {
-            return true;
-        } else {
-            InputStream is = new FileInputStream(src);
-            OutputStream os = new FileOutputStream(dst);
-            byte[] buff = new byte[1024];
-            int len;
-            while ((len = is.read(buff)) > 0) {
-                os.write(buff, 0, len);
-            }
-            is.close();
-            os.close();
-        }
-        return true;
-    }
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -484,6 +491,8 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
     }
 
     private void uploadImage(final Uri uriImage, final String newName){
+        if (uriImage == null) return;
+
         showProgressBar(layoutProgressBar, progressBar);
 
         // location to save images in Firebase
@@ -496,7 +505,6 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                 Toast.makeText(ManagerProfileActivity.this, "image uploaded", Toast.LENGTH_SHORT).show();
                 getUrl(newName);
-                hideProgressBar(progressBar);
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
@@ -515,6 +523,8 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
             @Override
             public void onSuccess(Uri downloadUrl) {
                 Log.i("ManagerProfileActivity", "imageUrl: "+downloadUrl.toString());
+                Debug.writeLog(downloadUrl.toString());
+
                 if (fileName.contains("front")){
                     idCardFront = downloadUrl.toString();
                 } else if (fileName.contains("back")){
@@ -525,8 +535,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
 
                 // update profile task
                 if (idCardFront.length() > 0 && idCardBack.length() > 0 && profileImage.length() > 0){
-                    new UpdateProfileTask(shipperId,firstName,lastName,dayOfBirth,gender,phoneNumber,email,driverLicense,idCardNumber,
-                            idCardFront,idCardBack,profileImage);
+                    new UpdateProfileTask().execute();
                 }
             }
         }).addOnFailureListener(new OnFailureListener() {
@@ -538,7 +547,6 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
     }
 
     // choose image picker
-    @SuppressLint("RestrictedApi")
     public static Intent getPickImageIntent(Context context) {
         Intent chooserIntent = null;
 
@@ -573,7 +581,6 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
 
     public static Uri getImageUriFromResult(Context context, int resultCode, Intent imageReturnedIntent) {
         Uri selectedImage = null;
-        @SuppressLint("RestrictedApi")
         File imageFile = getTempFile(context);
         if (resultCode == Activity.RESULT_OK) {
 
@@ -630,7 +637,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
     }
 
     private static File getTempFile(Context context) {
-        File imageFile = new File(Environment.getExternalStorageDirectory()+"/Android/media/"+context.getPackageName()+"/images", TEMP_IMAGE_NAME);
+        File imageFile = new File(Environment.getExternalStorageDirectory()+"/Android/media/com.luanvan.shipper/images", TEMP_IMAGE_NAME);
         imageFile.getParentFile().mkdirs();
 
         return imageFile;
@@ -737,35 +744,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
     @SuppressLint("StaticFieldLeak")
     private class UpdateProfileTask extends AsyncTask<String,String,String> {
 
-        private int shipperId;
-        private String firstName;
-        private String lastName;
-        private String dayOfBirth;
-        private String gender;
-        private String phoneNumber;
-        private String email;
-        private String driverLicense;
-        private String idCardNumber;
-        private String idCardFront, idCardBack;
-        private String profileImage;
-
         private OutputStream os;
-
-        public UpdateProfileTask(int shipperId, String firstName, String lastName, String dayOfBirth, String gender, String phoneNumber, String email, String driverLicense, String idCardNumber, String idCardFront, String idCardBack, String profileImage) {
-            this.shipperId = shipperId;
-            this.firstName = firstName;
-            this.lastName = lastName;
-            this.dayOfBirth = dayOfBirth;
-            this.gender = gender;
-            this.phoneNumber = phoneNumber;
-            this.email = email;
-            this.driverLicense = driverLicense;
-            this.idCardNumber = idCardNumber;
-            this.idCardFront = idCardFront;
-            this.idCardBack = idCardBack;
-            this.profileImage = profileImage;
-            execute();
-        }
 
         @Override
         protected void onPreExecute() {
@@ -783,7 +762,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("firstName", etFirstName.getText().toString());
                 jsonObject.put("lastName", etLastName.getText().toString());
-                jsonObject.put("dayOfBirth", "1998-08-25");
+                jsonObject.put("dayOfBirth", dayOfBirth);
                 jsonObject.put("gender", etGender.getText().toString());
                 jsonObject.put("phoneNumber", etPhone.getText().toString());
                 jsonObject.put("email", etEmail.getText().toString());
@@ -809,7 +788,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
                 os.write(data.getBytes());
                 os.flush();
 
-                InputStream is = null;
+                InputStream is;
                 int statusCode = connection.getResponseCode();
                 Log.i("statusCode", statusCode+"");
                 if (statusCode == 200) return "200";

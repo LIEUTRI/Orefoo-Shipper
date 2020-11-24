@@ -8,6 +8,10 @@ public class Order {
     private double victualsPrice;
     private double shippingFee;
     private String shippingAddress;
+    private double latitude;
+    private double longitude;
+    private double merchantCommission;
+    private double shipperCommission;
     private String note;
     private String time;
     private Branch branch;
@@ -18,12 +22,16 @@ public class Order {
 
     public Order() { }
 
-    public Order(int id, double totalPay, double victualsPrice, double shippingFee, String shippingAddress, String note, String time, Branch branch, int consumer, int shipper, String orderStatus, ArrayList<CartItem> orderItems) {
+    public Order(int id, double totalPay, double victualsPrice, double shippingFee, String shippingAddress, double latitude, double longitude, double merchantCommission, double shipperCommission, String note, String time, Branch branch, int consumer, int shipper, String orderStatus, ArrayList<CartItem> orderItems) {
         this.id = id;
         this.totalPay = totalPay;
         this.victualsPrice = victualsPrice;
         this.shippingFee = shippingFee;
         this.shippingAddress = shippingAddress;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.merchantCommission = merchantCommission;
+        this.shipperCommission = shipperCommission;
         this.note = note;
         this.time = time;
         this.branch = branch;
@@ -31,6 +39,30 @@ public class Order {
         this.shipper = shipper;
         this.orderStatus = orderStatus;
         this.orderItems = orderItems;
+    }
+
+    public double getMerchantCommission() {
+        return merchantCommission;
+    }
+
+    public double getShipperCommission() {
+        return shipperCommission;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
     }
 
     public void setId(int id) {

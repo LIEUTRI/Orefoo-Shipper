@@ -21,7 +21,6 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.luanvan.shipper.Adapter.RecyclerViewVictualAdapter;
-import com.luanvan.shipper.Fragments.ManagerFragment;
 import com.luanvan.shipper.components.Branch;
 import com.luanvan.shipper.components.RequestUrl;
 import com.luanvan.shipper.components.Shared;
@@ -33,10 +32,11 @@ import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.ArrayList;
 
-public class OrderDetailActivity extends AppCompatActivity implements View.OnClickListener {
+public class ManagerOrderActivity extends AppCompatActivity implements View.OnClickListener {
+
     private TextView tvBranchName, tvAddress;
     private ImageView ivBranch;
-    private TextView tvAccept, tvReject;
+    private TextView btnShipping, btnShipped, btnCancelOrder;
     private RelativeLayout layoutProgressBar;
     private ProgressBar progressBar;
     private RecyclerView recyclerView;
@@ -58,19 +58,19 @@ public class OrderDetailActivity extends AppCompatActivity implements View.OnCli
     private int consumer;
     private String orderStatus;
     private ArrayList<Victual> victuals = new ArrayList<>();
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_order_detail);
+        setContentView(R.layout.activity_manager_order);
 
         ivBranch = findViewById(R.id.ivBranch);
         tvBranchName = findViewById(R.id.tvBranchName);
         tvAddress = findViewById(R.id.tvAddress);
-        tvAccept = findViewById(R.id.tvAccept);
-        tvReject = findViewById(R.id.tvReject);
+        btnShipping = findViewById(R.id.btnShipping);
         layoutProgressBar = findViewById(R.id.layoutProgressBar);
         recyclerView = findViewById(R.id.recyclerView);
+        btnShipped = findViewById(R.id.btnShipped);
+        btnCancelOrder = findViewById(R.id.btnCancelOrder);
 
         orderId = getIntent().getIntExtra("id", -1);
         totalPay = getIntent().getDoubleExtra("totalPay", 0);
@@ -85,7 +85,7 @@ public class OrderDetailActivity extends AppCompatActivity implements View.OnCli
         time = getIntent().getStringExtra("time");
         branch = (Branch) getIntent().getSerializableExtra("branch");
         consumer = getIntent().getIntExtra("consumer", -1);
-        orderStatus = getIntent().getStringExtra("ordered");
+        orderStatus = getIntent().getStringExtra("orderStatus");
         victuals = (ArrayList<Victual>) getIntent().getSerializableExtra("orderItems");
 
         // ProgressBar ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -115,27 +115,38 @@ public class OrderDetailActivity extends AppCompatActivity implements View.OnCli
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(new RecyclerViewVictualAdapter(this, victuals));
 
-        tvAccept.setOnClickListener(this);
-        tvReject.setOnClickListener(this);
+        btnShipping.setCompoundDrawablesWithIntrinsicBounds(getDrawable(R.drawable.ic_check_24), null,null,null);
+        btnShipped.setCompoundDrawablesWithIntrinsicBounds(getDrawable(R.drawable.ic_done_all_24), null,null,null);
+        btnCancelOrder.setCompoundDrawablesWithIntrinsicBounds(getDrawable(R.drawable.ic_cancel_24), null,null,null);
+
+        switch (orderStatus){
+            case "accepted":
+                btnShipping.setEnabled(true);
+                break;
+
+            case "picked":
+                btnShipping.setEnabled(false);
+                break;
+        }
+
+        btnShipping.setOnClickListener(this);
+        btnShipped.setOnClickListener(this);
+        btnCancelOrder.setOnClickListener(this);
     }
 
-    @SuppressLint("NonConstantResourceId")
     @Override
     public void onClick(View v) {
-        switch (v.getId()){
-            case R.id.tvAccept:
-                new AcceptOrderTask().execute(orderId+"", shipperId+"");
-                break;
-
-            case R.id.tvReject:
-                setResult(RESULT_CANCELED);
-                finish();
-                break;
+        if (v.getId() == R.id.btnShipping){
+            new OrderTask().execute("3");
+        } else if (v.getId() == R.id.btnShipped){
+            new OrderTask().execute("4");
+        } else if (v.getId() == R.id.btnCancelOrder){
+            new OrderTask().execute("6"); //shipper cancel order
         }
     }
 
     @SuppressLint("StaticFieldLeak")
-    private class AcceptOrderTask extends AsyncTask<String,String,String> {
+    private class OrderTask extends AsyncTask<String,String,String> {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -147,7 +158,7 @@ public class OrderDetailActivity extends AppCompatActivity implements View.OnCli
             HttpURLConnection connection = null;
             //http post
             try {
-                URL url = new URL(RequestUrl.ORDER + "/" + strings[0] + "/shipper/" + strings[1]);
+                URL url = new URL(RequestUrl.ORDER + "/" + orderId + "/status/" + strings[0]);
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("PATCH");
                 connection.setRequestProperty("Content-Type", "application/json;charset=utf-8");
@@ -179,23 +190,17 @@ public class OrderDetailActivity extends AppCompatActivity implements View.OnCli
 
             if (s == null) return;
             if (s.equals("200")){
-                Toast.makeText(OrderDetailActivity.this, getString(R.string.received_orders), Toast.LENGTH_LONG).show();
+                Toast.makeText(ManagerOrderActivity.this, "OK", Toast.LENGTH_LONG).show();
 
                 Intent intent = new Intent();
-                intent.putExtra("consumer", consumer);
-                setResult(RESULT_OK);
+                intent.putExtra("orderStatus", orderStatus);
+                setResult(RESULT_OK, intent);
                 finish();
             } else if (s.equals("0")){
-                Toast.makeText(OrderDetailActivity.this, getString(R.string.socket_timeout), Toast.LENGTH_LONG).show();
+                Toast.makeText(ManagerOrderActivity.this, getString(R.string.socket_timeout), Toast.LENGTH_LONG).show();
             } else {
-                Toast.makeText(OrderDetailActivity.this, getString(R.string.error), Toast.LENGTH_LONG).show();
+                Toast.makeText(ManagerOrderActivity.this, getString(R.string.error), Toast.LENGTH_LONG).show();
             }
         }
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        setResult(RESULT_CANCELED);
     }
 }

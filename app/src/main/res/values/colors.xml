@@ -7,4 +7,7 @@
     <color name="defaultIconColor">#333333</color>
     <color name="extra_light_gray">#E1ECECEC</color>
     <color name="light_red">#FF3B2C</color>
+    <color name="green">#24A700</color>
+    <color name="orange">#FF8D13</color>
+    <color name="light_blue">#00A1F8</color>
 </resources>

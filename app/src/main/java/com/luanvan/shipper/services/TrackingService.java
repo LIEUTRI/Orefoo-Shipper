@@ -10,6 +10,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
@@ -31,10 +32,14 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.luanvan.shipper.MainActivity;
 import com.luanvan.shipper.R;
+import com.luanvan.shipper.components.RequestCode;
+import com.luanvan.shipper.components.Shared;
 
 public class TrackingService extends Service {
     private static final String TAG = "TrackingService";
+    private int shipperId;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -46,14 +51,17 @@ public class TrackingService extends Service {
         super.onCreate();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) buildNotificationNew();
         else buildNotificationOld();
+
+        SharedPreferences sharedPreferences = getSharedPreferences(Shared.SHIPPER, MODE_PRIVATE);
+        shipperId = sharedPreferences.getInt(Shared.KEY_SHIPPER_ID, -1);
+
         loginToFirebase();
     }
 
     private void buildNotificationOld() {
         String stop = "stop";
         registerReceiver(stopReceiver, new IntentFilter(stop));
-        PendingIntent broadcastIntent = PendingIntent.getBroadcast(
-                this, 0, new Intent(stop), PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent broadcastIntent = PendingIntent.getBroadcast(this, 0, new Intent(stop), PendingIntent.FLAG_UPDATE_CURRENT);
 
         Notification.Builder builder = new Notification.Builder(this)
                 .setContentTitle(getString(R.string.app_name))
@@ -69,7 +77,11 @@ public class TrackingService extends Service {
     {
         String stop = "stop";
         PendingIntent broadcastIntent = PendingIntent.getBroadcast(
-                this, 0, new Intent(stop), PendingIntent.FLAG_UPDATE_CURRENT);
+                this, RequestCode.REQUEST_NOTIFICATION, new Intent(stop), PendingIntent.FLAG_UPDATE_CURRENT);
+
+        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent contentIntent = PendingIntent.getActivity(getApplicationContext(), RequestCode.REQUEST_NOTIFICATION, intent, 0);
 
         String NOTIFICATION_CHANNEL_ID = "location";
         String channelName = "Background Service";
@@ -90,7 +102,9 @@ public class TrackingService extends Service {
                 .setSmallIcon(R.drawable.tracking_enabled)
                 .setPriority(NotificationManager.IMPORTANCE_LOW)
                 .setCategory(Notification.CATEGORY_SERVICE)
+                .setContentIntent(contentIntent)
                 .build();
+
         startForeground(2, notification);
     }
 
@@ -136,11 +150,17 @@ public class TrackingService extends Service {
             client.requestLocationUpdates(request, new LocationCallback() {
                 @Override
                 public void onLocationResult(LocationResult locationResult) {
-                    DatabaseReference ref = FirebaseDatabase.getInstance().getReference(path);
+                    String shipperID = "shipper" + shipperId;
+                    DatabaseReference ref = FirebaseDatabase.getInstance().getReference(path).child(shipperID);
                     Location location = locationResult.getLastLocation();
                     if (location != null) {
                         ref.setValue(location);
                         Log.i("location", location.getLatitude()+","+location.getLongitude());
+
+                        SharedPreferences.Editor editor = getSharedPreferences(Shared.SHIPPER, MODE_PRIVATE).edit();
+                        editor.putString(Shared.KEY_LATITUDE, location.getLatitude()+"");
+                        editor.putString(Shared.KEY_LONGITUDE, location.getLongitude()+"");
+                        editor.apply();
                     }
                 }
             }, null);

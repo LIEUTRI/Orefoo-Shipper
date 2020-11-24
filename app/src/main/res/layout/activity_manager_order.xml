@@ -93,35 +93,54 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:layout_alignParentBottom="true"
-        android:weightSum="2"
         android:id="@+id/layoutButtons">
-        <TextView
-            android:layout_width="0dp"
-            android:layout_weight="1"
+        <Button
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/accept"
-            android:textSize="18sp"
+            android:text="@string/picked_order"
+            android:textSize="14sp"
             android:textColor="#FFFFFF"
-            android:background="@drawable/bg_btn_accept"
-            android:fontFamily="sans-serif-black"
-            android:id="@+id/tvAccept"
+            android:background="@color/colorPrimary"
+            android:fontFamily="sans-serif-condensed"
+            android:id="@+id/btnShipping"
             android:gravity="center"
             android:padding="10dp"
-            app:drawableEndCompat="@drawable/ic_check_24" />
-        <TextView
-            android:layout_width="0dp"
-            android:layout_weight="1"
+            android:drawableStart="@drawable/ic_check_24"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginTop="10dp"/>
+        <Button
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/reject"
-            android:textSize="18sp"
+            android:text="@string/confirm_shipped"
+            android:textSize="14sp"
             android:textColor="#FFFFFF"
-            android:background="@drawable/bg_btn_reject"
-            android:fontFamily="sans-serif-black"
-            android:id="@+id/tvReject"
+            android:background="@color/colorPrimary"
+            android:fontFamily="sans-serif-condensed"
+            android:id="@+id/btnShipped"
             android:gravity="center"
             android:padding="10dp"
-            app:drawableStartCompat="@drawable/ic_close_24" />
+            app:drawableStartCompat="@drawable/ic_done_all_24"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginTop="10dp"/>
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/confirm_cancel"
+            android:textSize="14sp"
+            android:textColor="#FFFFFF"
+            android:background="@color/light_red"
+            android:fontFamily="sans-serif-condensed"
+            android:id="@+id/btnCancelOrder"
+            android:gravity="center"
+            android:padding="10dp"
+            app:drawableStartCompat="@drawable/ic_close_white_24"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"/>
     </LinearLayout>
 </RelativeLayout>

@@ -23,12 +23,16 @@ import android.widget.Toast;
 
 import com.auth0.android.jwt.Claim;
 import com.auth0.android.jwt.JWT;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.android.material.button.MaterialButton;
 import com.luanvan.shipper.LoginActivity;
+import com.luanvan.shipper.MainActivity;
 import com.luanvan.shipper.ManagerProfileActivity;
 import com.luanvan.shipper.R;
 import com.luanvan.shipper.SignupActivity;
 import com.luanvan.shipper.components.RequestUrl;
+import com.luanvan.shipper.components.ResultsCode;
 import com.luanvan.shipper.components.Shared;
 
 import org.json.JSONException;
@@ -43,6 +47,8 @@ import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.Objects;
 
+import de.hdodenhof.circleimageview.CircleImageView;
+
 public class MeFragment extends Fragment implements View.OnClickListener {
     private MaterialButton btnLogin, btnSignup;
     private TextView tvAddress, tvManagerProfile, tvLogout;
@@ -50,9 +56,10 @@ public class MeFragment extends Fragment implements View.OnClickListener {
     private ProgressBar progressBar;
     private LinearLayout layoutNotLogin, layoutLogin;
     private TextView tvUsername, tvName;
+    private CircleImageView ivProfile;
 
     private String token;
-    private int userId;
+    private int userId = -1;
     private int shipperID;
     private String username = "";
     private String firstName = "";
@@ -91,6 +98,7 @@ public class MeFragment extends Fragment implements View.OnClickListener {
         layoutLogin = view.findViewById(R.id.layoutLogin);
         tvUsername = view.findViewById(R.id.tvUsername);
         tvName = view.findViewById(R.id.tvName);
+        ivProfile = view.findViewById(R.id.ivProfile);
     }
 
     @Override
@@ -104,13 +112,10 @@ public class MeFragment extends Fragment implements View.OnClickListener {
 
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences(Shared.TOKEN, Context.MODE_PRIVATE);
         token = sharedPreferences.getString(Shared.KEY_BEARER, "")+"";
-        if (!token.equals("")){
+        if (token.contains("Bearer")){
             // logged in
             userId = getUserId(token);
             username = getUsername(token);
-//            sharedPreferences = getActivity().getSharedPreferences(Shared.SHIPPER, Context.MODE_PRIVATE);
-//            shipperID = sharedPreferences.getInt(Shared.KEY_SHIPPER_ID, -1);
-            new GetUserDataTask().execute();
         } else {
             layoutNotLogin.setVisibility(View.VISIBLE);
         }
@@ -133,8 +138,18 @@ public class MeFragment extends Fragment implements View.OnClickListener {
         return jwt.getSubject();
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (userId > 0){
+            new GetUserDataTask().execute();
+        }
+    }
+
     @SuppressLint("StaticFieldLeak")
     private class GetUserDataTask extends AsyncTask<String, String, String> {
+        private int resultCode;
 
         @Override
         protected void onPreExecute() {
@@ -149,15 +164,19 @@ public class MeFragment extends Fragment implements View.OnClickListener {
             try {
                 URL url = new URL(RequestUrl.SHIPPER +"user/"+userId);
                 connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
                 connection.setRequestProperty("Authorization", token);
+                connection.setRequestProperty("Accept", "application/json;charset=utf-8");
                 connection.connect();
 
                 InputStream is = null;
                 int statusCode = connection.getResponseCode();
                 if (statusCode >= 200 && statusCode < 400){
                     is = connection.getInputStream();
+                    resultCode = ResultsCode.SUCCESS;
                 } else {
                     is = connection.getErrorStream();
+                    resultCode = ResultsCode.FAILED;
                 }
 
                 reader = new BufferedReader(new InputStreamReader(is));
@@ -171,7 +190,7 @@ public class MeFragment extends Fragment implements View.OnClickListener {
                 }
                 return buffer.toString();
             } catch (SocketTimeoutException e) {
-                Toast.makeText(getActivity(), getResources().getString(R.string.socket_timeout), Toast.LENGTH_LONG).show();
+                resultCode = ResultsCode.SOCKET_TIMEOUT;
             } catch (IOException e){
                 e.printStackTrace();
             } finally {
@@ -197,33 +216,51 @@ public class MeFragment extends Fragment implements View.OnClickListener {
             progressBar.setVisibility(View.INVISIBLE);
             layoutLogin.setVisibility(View.VISIBLE);
 
-            if (result == null) return;
-            try {
-                JSONObject consumer = new JSONObject(result);
-                shipperID = consumer.getInt("id");
-                firstName = consumer.getString("firstName").equals("null") ? "":consumer.getString("firstName");
-                lastName = consumer.getString("lastName").equals("null") ? "":consumer.getString("lastName");
-                phoneNumber = consumer.getString("phoneNumber").equals("null") ? "":consumer.getString("phoneNumber");
-                dayOfBirth = consumer.getString("dayOfBirth").equals("null") ? "":consumer.getString("dayOfBirth");
-                gender = consumer.getString("gender").equals("null") ? "":consumer.getString("gender");
-                email = consumer.getString("email").equals("null") ? "":consumer.getString("email");
-                driverLicense = consumer.getString("driverLicense").equals("null") ? "":consumer.getString("driverLicense");
-                idCardNumber = consumer.getString("idCardNumber").equals("null") ? "":consumer.getString("idCardNumber");
-                idCardFront = consumer.getString("idCardFront").equals("null") ? "":consumer.getString("idCardFront");
-                idCardBack = consumer.getString("idCardBack").equals("null") ? "":consumer.getString("idCardBack");
-                profileImage = consumer.getString("profileImage").equals("null") ? "":consumer.getString("profileImage");
+            switch (resultCode){
+                case ResultsCode.SUCCESS:
+                    try {
+                        JSONObject consumer = new JSONObject(result);
+                        tvManagerProfile.setEnabled(true);
+                        shipperID = consumer.getInt("id");
+                        firstName = consumer.getString("firstName").equals("null") ? "":consumer.getString("firstName");
+                        lastName = consumer.getString("lastName").equals("null") ? "":consumer.getString("lastName");
+                        phoneNumber = consumer.getString("phoneNumber").equals("null") ? "":consumer.getString("phoneNumber");
+                        dayOfBirth = consumer.getString("dayOfBirth").equals("null") ? "":consumer.getString("dayOfBirth");
+                        gender = consumer.getString("gender").equals("null") ? "":consumer.getString("gender");
+                        email = consumer.getString("email").equals("null") ? "":consumer.getString("email");
+                        driverLicense = consumer.getString("driverLicense").equals("null") ? "":consumer.getString("driverLicense");
+                        idCardNumber = consumer.getString("idCardNumber").equals("null") ? "":consumer.getString("idCardNumber");
+                        idCardFront = consumer.getString("idCardFront").equals("null") ? "":consumer.getString("idCardFront");
+                        idCardBack = consumer.getString("idCardBack").equals("null") ? "":consumer.getString("idCardBack");
+                        profileImage = consumer.getString("profileImage").equals("null") ? "":consumer.getString("profileImage");
 
-                tvUsername.setText(username);
-                tvName.setText(firstName.equals("null")&&lastName.equals("null") ? "":lastName+" "+firstName);
+                        tvUsername.setText(username);
+                        tvName.setText(firstName.equals("null")&&lastName.equals("null") ? "":lastName+" "+firstName);
 
-                SharedPreferences.Editor editor = getActivity().getSharedPreferences(Shared.SHIPPER, Context.MODE_PRIVATE).edit();
-                editor.putInt(Shared.KEY_SHIPPER_ID, shipperID);
-                editor.putString(Shared.KEY_FIRST_NAME, firstName);
-                editor.putString(Shared.KEY_LAST_NAME, lastName);
-                editor.putString(Shared.KEY_USERNAME, username);
-                editor.apply();
-            } catch (JSONException e) {
-                e.printStackTrace();
+                        RequestOptions options = new RequestOptions()
+                                .centerCrop()
+                                .placeholder(R.drawable.ic_person_24)
+                                .error(R.drawable.ic_person_24);
+                        Glide.with(getActivity()).load(profileImage).apply(options).into(ivProfile);
+
+                        SharedPreferences.Editor editor = getActivity().getSharedPreferences(Shared.SHIPPER, Context.MODE_PRIVATE).edit();
+                        editor.putInt(Shared.KEY_SHIPPER_ID, shipperID);
+                        editor.putString(Shared.KEY_FIRST_NAME, firstName);
+                        editor.putString(Shared.KEY_LAST_NAME, lastName);
+                        editor.putString(Shared.KEY_USERNAME, username);
+                        editor.apply();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    break;
+
+                    case ResultsCode.SOCKET_TIMEOUT:
+                        Toast.makeText(getActivity(), getString(R.string.socket_timeout), Toast.LENGTH_SHORT).show();
+                        break;
+
+                    default:
+                        Toast.makeText(getActivity(), getString(R.string.error), Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -265,6 +302,11 @@ public class MeFragment extends Fragment implements View.OnClickListener {
 
                 layoutLogin.setVisibility(View.INVISIBLE);
                 layoutNotLogin.setVisibility(View.VISIBLE);
+                progressBar.setVisibility(View.INVISIBLE);
+
+                Intent i = new Intent(getActivity(), LoginActivity.class);
+                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(i);
                 break;
         }
     }

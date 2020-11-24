@@ -5,23 +5,36 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.luanvan.shipper.ManagerOrderActivity;
 import com.luanvan.shipper.OrderDetailActivity;
 import com.luanvan.shipper.R;
+import com.luanvan.shipper.components.Branch;
 import com.luanvan.shipper.components.Order;
+import com.luanvan.shipper.components.RequestCode;
+import com.luanvan.shipper.components.RequestUrl;
+import com.luanvan.shipper.components.ResultsCode;
 import com.luanvan.shipper.components.Shared;
 import com.luanvan.shipper.components.Victual;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
+import java.net.URL;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -62,7 +75,7 @@ public class RecyclerViewOrderAdapter extends RecyclerView.Adapter<RecyclerViewO
         Timestamp timestamp = Timestamp.valueOf(order.getTime().substring(0, order.getTime().indexOf("+")).replace("T", " "));
         calendar.setTime(timestamp);
         calendar.add(Calendar.HOUR_OF_DAY, 7);
-        holder.tvTime.setText(activity.getResources().getString(R.string.order_at)+calendar.getTime().toString().substring(0, calendar.getTime().toString().indexOf("GMT")-1));
+        holder.tvTime.setText(activity.getResources().getString(R.string.order_at)+calendar.getTime().toString());
         holder.tvAddress.setText(order.getShippingAddress());
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -73,15 +86,39 @@ public class RecyclerViewOrderAdapter extends RecyclerView.Adapter<RecyclerViewO
                     victuals.add(new Victual(order.getOrderItems().get(index).getName(), order.getOrderItems().get(index).getImageUrl(),
                             order.getOrderItems().get(index).getQuantity(), order.getOrderItems().get(index).getPrice()+"", order.getOrderItems().get(index).getDiscount()+""));
                 }
-                Intent intent = new Intent(activity, OrderDetailActivity.class);
-                intent.putExtra("imageUrl", order.getBranch().getImageUrl());
-                intent.putExtra("name", order.getBranch().getName());
-                intent.putExtra("address", order.getBranch().getAddress());
-                intent.putExtra("shippingFee", order.getShippingFee());
-                intent.putExtra("note", order.getNote());
+
+                Branch branch = new Branch(order.getBranch().getId(), order.getBranch().getName(), order.getBranch().getPhoneNumber(),
+                        order.getBranch().getImageUrl(), order.getBranch().getOpeningTime(), order.getBranch().getClosingTime(),
+                        order.getBranch().getAddress(), order.getBranch().getLatitude(), order.getBranch().getLongitude(), order.getBranch().isSell(), order.getBranch().getMerchant(), order.getBranch().getBranchStatus());
+
+                Intent intent = null;
+                switch (order.getOrderStatus()){
+                    case "ordered":
+                        intent = new Intent(activity, OrderDetailActivity.class);
+                        break;
+                    case "accepted":
+                    case "picked":
+                        intent = new Intent(activity, ManagerOrderActivity.class);
+                        break;
+                }
+                intent.putExtra("id", order.getId());
+                intent.putExtra("totalPay", order.getTotalPay());
                 intent.putExtra("victualsPrice", order.getVictualsPrice());
-                intent.putExtra("victuals", victuals);
-                activity.startActivity(intent);
+                intent.putExtra("shippingFee", order.getShippingFee());
+                intent.putExtra("shippingAddress", order.getShippingAddress());
+                intent.putExtra("latitude", order.getLatitude());
+                intent.putExtra("longitude", order.getLongitude());
+                intent.putExtra("merchantCommission", order.getMerchantCommission());
+                intent.putExtra("shipperCommission", order.getShipperCommission());
+                intent.putExtra("note", order.getNote());
+                intent.putExtra("name", order.getBranch().getName());
+                intent.putExtra("imageUrl", order.getBranch().getImageUrl());
+                intent.putExtra("address", order.getBranch().getAddress());
+                intent.putExtra("branch", branch);
+                intent.putExtra("consumer", order.getConsumer());
+                intent.putExtra("orderStatus", order.getOrderStatus());
+                intent.putExtra("orderItems", victuals);
+                activity.startActivityForResult(intent, order.getOrderStatus().equals("ordered") ? RequestCode.ORDER:RequestCode.ORDER_STATUS);
             }
         });
     }

@@ -1,8 +1,8 @@
 <resources>
-    <string name="app_name">Shipper</string>
-    <string name="tracking_enabled_notif">Tracking is currently enabled. Tap to cancel.</string>
-    <string name="test_email">test@test.com</string>
-    <string name="test_password">testpassword</string>
+    <string name="app_name">Orefoo - Shipper</string>
+    <string name="tracking_enabled_notif">Đang chia sẻ vị trí của bạn tới khách hàng.</string>
+    <string name="test_email">orefoo@gmail.com</string>
+    <string name="test_password">orefoo</string>
     <string name="firebase_path">location</string>
     <string name="order">Đơn hàng</string>
     <string name="manager">Quản lý</string>
@@ -65,4 +65,17 @@
     <string name="conflict_phone">Số điện thoại đã được sử dụng</string>
     <string name="conflict_email">Email đã được sử dụng</string>
     <string name="update_failed">Cập nhật không thành công</string>
+    <string name="verified">Đã xác thực</string>
+    <string name="waiting_verify">Đang chờ xác thực</string>
+    <string name="no_verified">Chưa xác thực</string>
+    <string name="error">Lỗi</string>
+    <string name="received_orders">Đã nhận đơn</string>
+    <string name="branch">Thông tin cửa hàng</string>
+    <string name="customer_order">Món khách đặt</string>
+    <string name="managerorder">Quản lý đơn hàng</string>
+    <string name="accepted_orders">Đơn đang chuẩn bị</string>
+    <string name="picked_orders">Đơn đang giao</string>
+    <string name="picked_order">Đơn đã chuẩn bị, tiến hành giao</string>
+    <string name="confirm_shipped">Xác nhận đã giao hàng</string>
+    <string name="confirm_cancel">Hủy đơn hàng</string>
 </resources>
