@@ -25,6 +25,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.SystemClock;
 import android.provider.Settings;
+import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -84,7 +85,7 @@ public class OrderFragment extends Fragment implements View.OnClickListener {
 
     private String token;
     private int userId;
-    private double shipperLat, shipperLng;
+    private String userStatus;
     private final String TAG = "OrderFragment";
 
     private Service myService;
@@ -120,6 +121,13 @@ public class OrderFragment extends Fragment implements View.OnClickListener {
 
         loadSettings();
 
+        //Check this app has location permission
+        int permission = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION);
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            //request permission
+            ActivityCompat.requestPermissions(getActivity(), new String[] { Manifest.permission.ACCESS_FINE_LOCATION }, RequestCode.REQUEST_PERMISSIONS);
+        }
+
         // ProgressBar ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(100, 100);
         params.addRule(RelativeLayout.CENTER_IN_PARENT);
@@ -139,10 +147,8 @@ public class OrderFragment extends Fragment implements View.OnClickListener {
             // logged in
             userId = getUserId(token);
 
-            if (switchOrderStatus.isChecked()){
-                new GetUserDataTask().execute();
-                new GetShipperDataTask().execute();
-            }
+            new GetUserDataTask().execute();
+            new GetShipperDataTask().execute();
         } else {
             startActivity(new Intent(getActivity(), LoginActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TASK));
         }
@@ -152,16 +158,13 @@ public class OrderFragment extends Fragment implements View.OnClickListener {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked){
                     Toast.makeText(getActivity(), getResources().getString(R.string.receiving_orders), Toast.LENGTH_LONG).show();
-
                     new GetUserDataTask().execute();
                     new GetShipperDataTask().execute();
                     recyclerView.setVisibility(View.VISIBLE);
                 } else {
                     Toast.makeText(getActivity(), getResources().getString(R.string.not_receiving_orders), Toast.LENGTH_LONG).show();
-                    if (myService != null && isMyServiceRunning(myService.getClass()))
+                    if (myService != null)
                         getActivity().stopService(mServiceIntent);
-
-                    Log.i(TAG, "service isRunning: " + isMyServiceRunning(myService.getClass()));
 
                     recyclerView.setVisibility(View.INVISIBLE);
                 }
@@ -314,9 +317,24 @@ public class OrderFragment extends Fragment implements View.OnClickListener {
                     try {
                         JSONObject jsonUser = new JSONObject(result);
 
+                        userStatus = jsonUser.getString("userStatus");
+
                         SharedPreferences.Editor editor = getActivity().getSharedPreferences(Shared.SHIPPER, Context.MODE_PRIVATE).edit();
-                        editor.putString(Shared.KEY_USER_STATUS, jsonUser.getString("userStatus"));
+                        editor.putString(Shared.KEY_USER_STATUS, userStatus);
                         editor.apply();
+
+                        if (userStatus.equals("just_created")){
+
+                        } else if (userStatus.equals("waiting_verify")){
+                            switchOrderStatus.setChecked(false);
+                            switchOrderStatus.setEnabled(false);
+                            String sourceString = "<span style=\"text-align: center;\">"+getString(R.string.receive_order)+"</span><br><i style=\"font-size:8px;\">(Tài khoản chưa xác thực)</i>";
+                            switchOrderStatus.setText(Html.fromHtml(sourceString));
+                            ibRefresh.setEnabled(false);
+                        } else {
+                            switchOrderStatus.setText(getString(R.string.receive_order));
+                            ibRefresh.setEnabled(true);
+                        }
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -414,30 +432,39 @@ public class OrderFragment extends Fragment implements View.OnClickListener {
                         editor.putString(Shared.KEY_LAST_NAME, jsonShipper.getString("lastName"));
                         editor.apply();
 
+                        if (userStatus.equals("just_created")){
+                            startActivity(new Intent(getActivity(), ManagerProfileActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TASK));
+                        }
+
                         //Check this app has location permission
                         int permission = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION);
                         if (permission == PackageManager.PERMISSION_GRANTED) {
-                            if (!isMyServiceRunning(TrackingService.class)){
+                            if (!isMyServiceRunning(TrackingService.class) && !userStatus.equals("just_created") && !userStatus.equals("waiting_verify")){
                                 startTrackerService();
-                            }
 
-                            try {
-                                Thread.sleep(300);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            while (isMyServiceRunning(TrackingService.class)){
-                                SharedPreferences sharedPreferences = getActivity().getSharedPreferences(Shared.SHIPPER, Context.MODE_PRIVATE);
-                                if (!sharedPreferences.getString(Shared.KEY_LATITUDE, "0").equals("0")){
-                                    Log.i(TAG, "shipper location: " + sharedPreferences.getString(Shared.KEY_LATITUDE, "0") +
-                                            sharedPreferences.getString(Shared.KEY_LONGITUDE, "0"));
+                                int i = 0;
+                                while (i < 20){
 
-                                    String lat = sharedPreferences.getString(Shared.KEY_LATITUDE, "0");
-                                    String lng = sharedPreferences.getString(Shared.KEY_LONGITUDE, "0");
+                                    try {
+                                        Thread.sleep(1000);
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
 
-                                    new GetOrderTask().execute(lat, lng);
+                                    SharedPreferences sharedPreferences = getActivity().getSharedPreferences(Shared.SHIPPER, Context.MODE_PRIVATE);
+                                    if (!sharedPreferences.getString(Shared.KEY_LATITUDE, "0").equals("0")){
+                                        Log.i(TAG, "shipper location: " + sharedPreferences.getString(Shared.KEY_LATITUDE, "0") +
+                                                sharedPreferences.getString(Shared.KEY_LONGITUDE, "0"));
 
-                                    break;
+                                        String lat = sharedPreferences.getString(Shared.KEY_LATITUDE, "0");
+                                        String lng = sharedPreferences.getString(Shared.KEY_LONGITUDE, "0");
+
+                                        new GetOrderTask().execute(lat, lng);
+
+                                        break;
+                                    }
+                                    i++;
+                                    Log.i(TAG, "count: "+i);
                                 }
                             }
                         } else {
@@ -460,6 +487,8 @@ public class OrderFragment extends Fragment implements View.OnClickListener {
         }
     }
 
+
+
     @SuppressLint("StaticFieldLeak")
     class GetOrderTask extends AsyncTask<String,String,String> {
         private InputStream is;
@@ -468,7 +497,6 @@ public class OrderFragment extends Fragment implements View.OnClickListener {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            progressBar.setVisibility(View.VISIBLE);
         }
 
         @Override

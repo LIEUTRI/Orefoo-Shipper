@@ -1,66 +1,282 @@
 package com.luanvan.shipper.Fragments;
 
+import android.annotation.SuppressLint;
+import android.app.DatePickerDialog;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
+import android.widget.DatePicker;
+import android.widget.ImageButton;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 import com.luanvan.shipper.R;
+import com.luanvan.shipper.components.RequestUrl;
+import com.luanvan.shipper.components.ResultsCode;
+import com.luanvan.shipper.components.Shared;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link RevenueFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+
 public class RevenueFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private String token;
+    private int shipperId;
+    private RelativeLayout layoutProgressBar;
+    private ProgressBar progressBar;
+    private TextView tvFromDay, tvToDay;
+    private ImageButton ibSearch;
+    private Calendar calendar = null;
+    private DatePickerDialog.OnDateSetListener onDateSetListener = null;
+    private TextView tvRevenueToday, tvRevenueRange;
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private String fromDay, toDay;
+    private boolean fromDayClicked;
 
-    public RevenueFragment() {
-        // Required empty public constructor
-    }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment RevenueFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static RevenueFragment newInstance(String param1, String param2) {
-        RevenueFragment fragment = new RevenueFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
+    public RevenueFragment() { }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_revenue, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        layoutProgressBar = view.findViewById(R.id.layoutProgressBar);
+        tvFromDay = view.findViewById(R.id.tvFromDay);
+        tvToDay = view.findViewById(R.id.tvToDay);
+        ibSearch = view.findViewById(R.id.ibSearch);
+        tvRevenueToday = view.findViewById(R.id.tvRevenueToday);
+        tvRevenueRange = view.findViewById(R.id.tvRevenueRange);
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        // ProgressBar ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(100, 100);
+        params.addRule(RelativeLayout.CENTER_IN_PARENT);
+        progressBar = new ProgressBar(getActivity(), null, android.R.attr.progressBarStyleSmall);
+        layoutProgressBar.addView(progressBar, params);
+
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences(Shared.TOKEN, Context.MODE_PRIVATE);
+        token = sharedPreferences.getString(Shared.KEY_BEARER, "");
+
+        sharedPreferences = getActivity().getSharedPreferences(Shared.SHIPPER, Context.MODE_PRIVATE);
+        shipperId = sharedPreferences.getInt(Shared.KEY_SHIPPER_ID, -1);
+
+        fromDay = formatTime("yyyy-MM-dd hh:mm:ss", new Date(), Locale.ENGLISH);
+        toDay = formatTime("yyyy-MM-dd hh:mm:ss", new Date(), Locale.ENGLISH);
+        tvFromDay.setText(formatTime("dd MMMM, yyyy", new Date(), new Locale("vi", "VN")));
+        tvToDay.setText(formatTime("dd MMMM, yyyy", new Date(), new Locale("vi", "VN")));
+        /////////////////////////////////////////////////////////////////////////
+        calendar = Calendar.getInstance();
+        onDateSetListener = new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+                calendar.set(Calendar.YEAR, year);
+                calendar.set(Calendar.MONTH, month);
+                calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                if (fromDayClicked){
+                    fromDay = formatTime("yyyy-MM-dd hh:mm:ss", calendar.getTime(), Locale.ENGLISH);
+                    tvFromDay.setText(formatTime("dd MMMM, yyyy", calendar.getTime(), new Locale("vi", "VN")));
+                } else {
+                    toDay = formatTime("yyyy-MM-dd hh:mm:ss", calendar.getTime(), Locale.ENGLISH);
+                    tvToDay.setText(formatTime("dd MMMM, yyyy", calendar.getTime(), new Locale("vi", "VN")));
+                }
+            }
+        };
+        /////////////////////////////////////////////////////////////////////////
+
+        String startToDay, endToDay;
+        Calendar today = Calendar.getInstance();
+        today.setTime(new Date());
+        today.set(today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH), 0,0,0);
+        startToDay = formatTime("yyyy-MM-dd hh:mm:ss", today.getTime(), Locale.ENGLISH);
+        today.set(today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH), 23,59,0);
+        endToDay = formatTime("yyyy-MM-dd hh:mm:ss", today.getTime(), Locale.ENGLISH);
+        new GetRevenueTask(startToDay, endToDay, true);
+
+        ////////////////////////////////////////////////////////////////////////
+        tvFromDay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                fromDayClicked = true;
+                new DatePickerDialog(getActivity(), onDateSetListener,
+                        calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show();
+            }
+        });
+        tvToDay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                fromDayClicked = false;
+                new DatePickerDialog(getActivity(), onDateSetListener,
+                        calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show();
+            }
+        });
+
+        ibSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String startTime = null;
+                String endTime = null;
+                try {
+                    startTime = URLEncoder.encode(fromDay, "utf-8");
+                    endTime = URLEncoder.encode(toDay, "utf-8");
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                new GetRevenueTask(startTime, endTime, false);
+            }
+        });
+    }
+
+    public static String formatTime(String timeFormat, Date time, Locale locale){
+//        String timeFormat = "HH:mm dd MMMM, yyyy";
+        SimpleDateFormat formatter;
+
+        try {
+            formatter = new SimpleDateFormat(timeFormat, locale);
+        } catch(Exception e) {
+            formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss", locale);
+        }
+        return formatter.format(time);
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    class GetRevenueTask extends AsyncTask<String,String,String> {
+        private InputStream is;
+        private int resultCode;
+        private String startTime, endTime;
+        private boolean isToday;
+
+        public GetRevenueTask(String startTime, String endTime, boolean isToday) {
+            this.startTime = startTime;
+            this.endTime = endTime;
+            this.isToday = isToday;
+            execute();
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressBar.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected String doInBackground(String... strings) {
+            HttpURLConnection connection = null;
+            BufferedReader reader = null;
+
+            try {
+                URL url = new URL(RequestUrl.ORDER + "/shipper/"+shipperId+"/income?startTime="+startTime+"&endTime="+endTime);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setRequestProperty("Authorization", token);
+                connection.setRequestProperty("Accept", "application/json;charset=utf-8");
+                connection.connect();
+
+                int statusCode = connection.getResponseCode();
+                Log.i("statusCode", statusCode+" | request: " + url);
+
+                if (statusCode >= 200 && statusCode < 400){
+                    is = connection.getInputStream();
+                    resultCode = ResultsCode.SUCCESS;
+                } else {
+                    is = connection.getErrorStream();
+                    resultCode = ResultsCode.FAILED;
+                }
+
+                reader = new BufferedReader(new InputStreamReader(is));
+                StringBuilder buffer = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null){
+                    buffer.append(line).append("\n");
+                    Log.d("ResponseHistory: ", "> " + line);
+                }
+
+                return buffer.toString();
+            } catch (SocketTimeoutException e) {
+                resultCode = ResultsCode.SOCKET_TIMEOUT;
+            } catch (IOException e){
+                resultCode = ResultsCode.IO_EXCEPTION;
+            } finally {
+                if (connection != null) {
+                    connection.disconnect();
+                }
+                try {
+                    if (reader != null) {
+                        reader.close();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            return null;
+        }
+
+        @SuppressLint({"SetTextI18n", "DefaultLocale"})
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+
+            progressBar.setVisibility(View.INVISIBLE);
+
+            switch (resultCode) {
+                case ResultsCode.SUCCESS:
+                    try {
+                        JSONObject jsonObject = new JSONObject(s);
+                        if (isToday){
+                            tvRevenueToday.setText(String.format("%,.0f", jsonObject.getDouble("income"))+" VNĐ");
+                        } else
+                            tvRevenueRange.setText(String.format("%,.0f", jsonObject.getDouble("income"))+" VNĐ");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+
+                case ResultsCode.FAILED:
+                    Log.i("result", "get failed");
+                    break;
+                case ResultsCode.SOCKET_TIMEOUT:
+                    Toast.makeText(getActivity(), getResources().getString(R.string.socket_timeout), Toast.LENGTH_SHORT).show();
+                    break;
+                case ResultsCode.IO_EXCEPTION:
+                    Toast.makeText(getActivity(), "error", Toast.LENGTH_SHORT).show();
+                    break;
+            }
+        }
     }
 }

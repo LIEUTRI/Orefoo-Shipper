@@ -141,6 +141,20 @@
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:gravity="center_vertical"
+                    android:text="@string/delivery_history"
+                    android:textColor="#000000"
+                    android:textSize="20sp"
+                    android:background="@drawable/bg_bottom_border"
+                    android:drawablePadding="10dp"
+                    android:paddingStart="10dp"
+                    app:drawableStartCompat="@drawable/ic_history_24"
+                    app:drawableEndCompat="@drawable/ic_keyboard_arrow_right_24"
+                    android:id="@+id/tvDeliveryHistory"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:gravity="center_vertical"
                     android:text="@string/setting"
                     android:textColor="#000000"
                     android:textSize="20sp"

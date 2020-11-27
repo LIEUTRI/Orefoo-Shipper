@@ -26,6 +26,7 @@ import com.auth0.android.jwt.JWT;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.android.material.button.MaterialButton;
+import com.luanvan.shipper.DeliveryHistoryActivity;
 import com.luanvan.shipper.LoginActivity;
 import com.luanvan.shipper.MainActivity;
 import com.luanvan.shipper.ManagerProfileActivity;
@@ -51,7 +52,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class MeFragment extends Fragment implements View.OnClickListener {
     private MaterialButton btnLogin, btnSignup;
-    private TextView tvAddress, tvManagerProfile, tvLogout;
+    private TextView tvAddress, tvManagerProfile, tvDeliveryHistory, tvLogout;
     private RelativeLayout layoutProgressBar;
     private ProgressBar progressBar;
     private LinearLayout layoutNotLogin, layoutLogin;
@@ -99,6 +100,7 @@ public class MeFragment extends Fragment implements View.OnClickListener {
         tvUsername = view.findViewById(R.id.tvUsername);
         tvName = view.findViewById(R.id.tvName);
         ivProfile = view.findViewById(R.id.ivProfile);
+        tvDeliveryHistory = view.findViewById(R.id.tvDeliveryHistory);
     }
 
     @Override
@@ -123,6 +125,7 @@ public class MeFragment extends Fragment implements View.OnClickListener {
         btnLogin.setOnClickListener(this);
         btnSignup.setOnClickListener(this);
         tvManagerProfile.setOnClickListener(this);
+        tvDeliveryHistory.setOnClickListener(this);
         tvLogout.setOnClickListener(this);
     }
 
@@ -293,6 +296,11 @@ public class MeFragment extends Fragment implements View.OnClickListener {
                 intent.putExtra("profileImage", profileImage);
                 startActivity(intent);
                 break;
+
+            case R.id.tvDeliveryHistory:
+                startActivity(new Intent(getActivity(), DeliveryHistoryActivity.class));
+                break;
+
             case R.id.tvLogout:
                 SharedPreferences.Editor editor = Objects.requireNonNull(getActivity()).getSharedPreferences(Shared.TOKEN, Context.MODE_PRIVATE).edit();
                 editor.putString(Shared.KEY_BEARER, "");

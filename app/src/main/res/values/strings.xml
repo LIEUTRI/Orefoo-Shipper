@@ -78,4 +78,13 @@
     <string name="picked_order">Đơn đã chuẩn bị, tiến hành giao</string>
     <string name="confirm_shipped">Xác nhận đã giao hàng</string>
     <string name="confirm_cancel">Hủy đơn hàng</string>
+    <string name="delivery_history">Lịch sử giao hàng</string>
+    <string name="revenue_statistics">Thống kê thu nhập</string>
+    <string name="revenue_per_year">Thu nhập năm</string>
+    <string name="success_delivery">Đơn giao thành công</string>
+    <string name="cancel_order">Đơn đã hủy</string>
+    <string name="revenue_today">Thu nhập hôm nay</string>
+    <string name="revenue_special">Thu nhập theo khoảng thời gian</string>
+    <string name="from_day">Từ ngày:</string>
+    <string name="to_day">Đến ngày:</string>
 </resources>

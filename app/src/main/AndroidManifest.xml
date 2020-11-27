@@ -16,7 +16,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ManagerOrderActivity"></activity>
+        <activity android:name=".DeliveryHistoryActivity"></activity>
+        <activity android:name=".ManagerOrderActivity" />
         <activity android:name=".ManagerProfileActivity" />
         <activity android:name=".SignupActivity" />
         <activity android:name=".LoginActivity" />

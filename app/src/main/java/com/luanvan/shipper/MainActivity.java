@@ -12,9 +12,14 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
 import com.luanvan.shipper.Adapter.ViewPagerFragmentAdapter;
 import com.luanvan.shipper.Fragments.ManagerFragment;
 import com.luanvan.shipper.Fragments.MeFragment;
@@ -39,6 +44,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         tvManager = findViewById(R.id.tvManager);
         tvRevenue = findViewById(R.id.tvRevenue);
         tvMe = findViewById(R.id.tvMe);
+
+        loginToFirebase();
 
         tvOrder.setOnClickListener(this);
         tvManager.setOnClickListener(this);
@@ -155,6 +162,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.tvMe:
                 viewPager.setCurrentItem(3); break;
         }
+    }
+
+    private void loginToFirebase() {
+        String email = getString(R.string.test_email);
+        String password = getString(R.string.test_password);
+
+        FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+            @Override
+            public void onComplete(Task<AuthResult> task) {
+                if (task.isSuccessful()) {
+                    Log.i("MainActivity", "Logged in successfully");
+                } else {
+                    Log.d("MainActivity", "Firebase authentication failed");
+                }
+            }
+        });
     }
 
     @Override

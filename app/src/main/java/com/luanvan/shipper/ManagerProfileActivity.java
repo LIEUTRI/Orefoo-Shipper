@@ -76,6 +76,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -154,7 +155,9 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
         tvPhone = findViewById(R.id.tvPhone);
         tvUserStatus = findViewById(R.id.tvUserStatus);
 
-        shipperId = getIntent().getIntExtra("id", -1);
+        SharedPreferences sharedPreferences = getSharedPreferences(Shared.SHIPPER, MODE_PRIVATE);
+        shipperId = sharedPreferences.getInt(Shared.KEY_SHIPPER_ID, -1);
+
         username = getIntent().getStringExtra("username");
         firstName = getIntent().getStringExtra("firstName");
         lastName = getIntent().getStringExtra("lastName");
@@ -168,13 +171,13 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
         idCardBack = getIntent().getStringExtra("idCardBack");
         profileImage = getIntent().getStringExtra("profileImage");
 
-        tvName.setText(lastName +" "+ firstName);
+        tvName.setText(firstName != null ? lastName +" "+ firstName : "");
         tvPhone.setText(phoneNumber);
 
         // set Profile image
         ivProfile.setImageResource(R.drawable.ic_person_24);
         ivProfile.setCircleBackgroundColorResource(R.color.light_gray);
-        if (profileImage.length() > 1){
+        if (profileImage != null && profileImage.length() > 1){
             RequestOptions options = new RequestOptions()
                     .centerCrop()
                     .placeholder(R.drawable.ic_person_24)
@@ -199,11 +202,11 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
             calendar.setTime(new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).parse(dayOfBirth));
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH);
             etDOB.setText(simpleDateFormat.format(calendar.getTime()));
-        } catch (ParseException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
-        if (idCardFront.length() > 1){
+        if (idCardFront != null && idCardFront.length() > 1){
             Glide.with(this)
                 .load(idCardFront)
                 .listener(new RequestListener<Drawable>() {
@@ -222,7 +225,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
                 .into(ivSlotFront);
         }
 
-        if (idCardBack.length() > 1){
+        if (idCardBack != null && idCardBack.length() > 1){
             Glide.with(this)
                 .load(idCardBack)
                 .listener(new RequestListener<Drawable>() {
@@ -243,8 +246,8 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
 
         /////////////////////////////////////////////////////////////////////////
 
-        SharedPreferences sharedPreferences = getSharedPreferences(Shared.TOKEN, Context.MODE_PRIVATE);
-        token = sharedPreferences.getString(Shared.KEY_BEARER, "")+"";
+        sharedPreferences = getSharedPreferences(Shared.TOKEN, Context.MODE_PRIVATE);
+        token = sharedPreferences.getString(Shared.KEY_BEARER, "");
         Log.i(TAG, token);
 
         // verification //////////////////////////////////////////////////////////////
@@ -534,9 +537,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
                 }
 
                 // update profile task
-                if (idCardFront.length() > 0 && idCardBack.length() > 0 && profileImage.length() > 0){
-                    new UpdateProfileTask().execute();
-                }
+                new UpdateProfileTask().execute();
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
@@ -759,6 +760,8 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
             try {
                 URL url = new URL(RequestUrl.SHIPPER + shipperId);
 
+                Log.i(TAG, "request update: "+url.toString());
+
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("firstName", etFirstName.getText().toString());
                 jsonObject.put("lastName", etLastName.getText().toString());
@@ -808,7 +811,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
                 return buffer.toString();
 
             } catch (SocketTimeoutException e) {
-                Toast.makeText(ManagerProfileActivity.this, getResources().getString(R.string.socket_timeout), Toast.LENGTH_LONG).show();
+                return "0";
             } catch (IOException | JSONException e){
                 e.printStackTrace();
             } finally {
@@ -836,8 +839,11 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
                 SharedPreferences.Editor editor = getSharedPreferences(Shared.SHIPPER, Context.MODE_PRIVATE).edit();
                 editor.putString(Shared.KEY_FIRST_NAME, firstName);
                 editor.putString(Shared.KEY_LAST_NAME, lastName);
-                editor.putString(Shared.KEY_USERNAME, username);
                 editor.apply();
+
+                startActivity(new Intent(ManagerProfileActivity.this, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK));
+            } else if (s.equals("0")){
+                Toast.makeText(ManagerProfileActivity.this, getResources().getString(R.string.socket_timeout), Toast.LENGTH_LONG).show();
             } else {
                 try {
                     JSONObject jsonObject = new JSONObject(s);

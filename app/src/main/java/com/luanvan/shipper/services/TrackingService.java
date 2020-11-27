@@ -32,6 +32,7 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.luanvan.shipper.Fragments.OrderFragment;
 import com.luanvan.shipper.MainActivity;
 import com.luanvan.shipper.R;
 import com.luanvan.shipper.components.RequestCode;
@@ -55,7 +56,7 @@ public class TrackingService extends Service {
         SharedPreferences sharedPreferences = getSharedPreferences(Shared.SHIPPER, MODE_PRIVATE);
         shipperId = sharedPreferences.getInt(Shared.KEY_SHIPPER_ID, -1);
 
-        loginToFirebase();
+        requestLocationUpdates();
     }
 
     private void buildNotificationOld() {
@@ -116,23 +117,6 @@ public class TrackingService extends Service {
             stopSelf();
         }
     };
-
-    private void loginToFirebase() {
-        String email = getString(R.string.test_email);
-        String password = getString(R.string.test_password);
-
-        FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(Task<AuthResult> task) {
-                if (task.isSuccessful()) {
-                    requestLocationUpdates();
-                    Log.i(TAG, "Logged in successfully");
-                } else {
-                    Log.d(TAG, "Firebase authentication failed");
-                }
-            }
-        });
-    }
 
     private void requestLocationUpdates() {
         LocationRequest request = new LocationRequest();
