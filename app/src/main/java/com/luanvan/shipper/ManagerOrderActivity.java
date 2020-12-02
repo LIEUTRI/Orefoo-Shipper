@@ -1,11 +1,13 @@
 package com.luanvan.shipper;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -40,6 +42,7 @@ public class ManagerOrderActivity extends AppCompatActivity implements View.OnCl
     private RelativeLayout layoutProgressBar;
     private ProgressBar progressBar;
     private RecyclerView recyclerView;
+    private TextView tvTotal, tvMerchantCommission, tvTienDuaChoMerchant, tvTienThuCuaKhach;
 
     private String token;
     private int shipperId;
@@ -58,6 +61,7 @@ public class ManagerOrderActivity extends AppCompatActivity implements View.OnCl
     private int consumer;
     private String orderStatus;
     private ArrayList<Victual> victuals = new ArrayList<>();
+    @SuppressLint({"DefaultLocale", "SetTextI18n"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,6 +75,10 @@ public class ManagerOrderActivity extends AppCompatActivity implements View.OnCl
         recyclerView = findViewById(R.id.recyclerView);
         btnShipped = findViewById(R.id.btnShipped);
         btnCancelOrder = findViewById(R.id.btnCancelOrder);
+        tvTotal = findViewById(R.id.tvTotal);
+        tvMerchantCommission = findViewById(R.id.tvMerchantCommission);
+        tvTienDuaChoMerchant = findViewById(R.id.tvTienDuaChoMerchant);
+        tvTienThuCuaKhach = findViewById(R.id.tvTienThuCuaKhach);
 
         orderId = getIntent().getIntExtra("id", -1);
         totalPay = getIntent().getDoubleExtra("totalPay", 0);
@@ -115,6 +123,11 @@ public class ManagerOrderActivity extends AppCompatActivity implements View.OnCl
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(new RecyclerViewVictualAdapter(this, victuals));
 
+        tvTotal.setText(String.format("%,.0f", victualsPrice) + "đ");
+        tvMerchantCommission.setText(String.format("%,.0f", merchantCommission) + "đ");
+        tvTienDuaChoMerchant.setText(String.format("%,.0f", victualsPrice-merchantCommission) + "đ");
+        tvTienThuCuaKhach.setText(String.format("%,.0f", totalPay) + "đ");
+
         btnShipping.setCompoundDrawablesWithIntrinsicBounds(getDrawable(R.drawable.ic_check_24), null,null,null);
         btnShipped.setCompoundDrawablesWithIntrinsicBounds(getDrawable(R.drawable.ic_done_all_24), null,null,null);
         btnCancelOrder.setCompoundDrawablesWithIntrinsicBounds(getDrawable(R.drawable.ic_cancel_24), null,null,null);
@@ -137,12 +150,58 @@ public class ManagerOrderActivity extends AppCompatActivity implements View.OnCl
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.btnShipping){
-            new OrderTask().execute("3");
+            showDialogConfirm(this, getString(R.string.confirm_picked), v.getId());
         } else if (v.getId() == R.id.btnShipped){
-            new OrderTask().execute("4");
+            showDialogConfirm(this, getString(R.string.confirm_shipped), v.getId());
         } else if (v.getId() == R.id.btnCancelOrder){
-            new OrderTask().execute("6"); //shipper cancel order
+            showDialogConfirm(this, getString(R.string.confirm_cancel), v.getId());
         }
+    }
+
+    @SuppressLint("NonConstantResourceId")
+    private void showDialogConfirm(Context context, String message, int id){
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(getString(R.string.confirm));
+        builder.setMessage(message);
+        builder.setIcon(getDrawable(R.drawable.ic_warning_24));
+
+        switch (id){
+            case R.id.btnShipping:
+                builder.setPositiveButton(R.string.confirm, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        new OrderTask().execute("3");
+                    }
+                });
+                break;
+
+            case R.id.btnShipped:
+                builder.setPositiveButton(R.string.confirm, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        new OrderTask().execute("4");
+                    }
+                });
+                break;
+
+            case R.id.btnCancelOrder:
+                builder.setPositiveButton(R.string.confirm, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        new OrderTask().execute("6"); //shipper cancel order
+                    }
+                });
+                break;
+        }
+
+        builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+            }
+        });
+
+        builder.show();
     }
 
     @SuppressLint("StaticFieldLeak")

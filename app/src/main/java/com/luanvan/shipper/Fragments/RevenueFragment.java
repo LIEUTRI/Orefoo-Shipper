@@ -10,6 +10,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -42,6 +43,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 
 public class RevenueFragment extends Fragment {
 
@@ -54,6 +56,7 @@ public class RevenueFragment extends Fragment {
     private Calendar calendar = null;
     private DatePickerDialog.OnDateSetListener onDateSetListener = null;
     private TextView tvRevenueToday, tvRevenueRange;
+    private SwipeRefreshLayout layoutRefresh;
 
     private String fromDay, toDay;
     private boolean fromDayClicked;
@@ -79,6 +82,7 @@ public class RevenueFragment extends Fragment {
         ibSearch = view.findViewById(R.id.ibSearch);
         tvRevenueToday = view.findViewById(R.id.tvRevenueToday);
         tvRevenueRange = view.findViewById(R.id.tvRevenueRange);
+        layoutRefresh = view.findViewById(R.id.layoutRefresh);
     }
 
     @Override
@@ -97,12 +101,13 @@ public class RevenueFragment extends Fragment {
         sharedPreferences = getActivity().getSharedPreferences(Shared.SHIPPER, Context.MODE_PRIVATE);
         shipperId = sharedPreferences.getInt(Shared.KEY_SHIPPER_ID, -1);
 
-        fromDay = formatTime("yyyy-MM-dd hh:mm:ss", new Date(), Locale.ENGLISH);
-        toDay = formatTime("yyyy-MM-dd hh:mm:ss", new Date(), Locale.ENGLISH);
+        fromDay = formatTime("yyyy-MM-dd", new Date(), new Locale("vi", "VN"));
+        fromDay += " 00:00:00";
+        toDay = formatTime("yyyy-MM-dd HH:mm:ss", new Date(), new Locale("vi", "VN"));
         tvFromDay.setText(formatTime("dd MMMM, yyyy", new Date(), new Locale("vi", "VN")));
         tvToDay.setText(formatTime("dd MMMM, yyyy", new Date(), new Locale("vi", "VN")));
         /////////////////////////////////////////////////////////////////////////
-        calendar = Calendar.getInstance();
+        calendar = Calendar.getInstance(new Locale("vi", "VN"));
         onDateSetListener = new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
@@ -110,10 +115,12 @@ public class RevenueFragment extends Fragment {
                 calendar.set(Calendar.MONTH, month);
                 calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
                 if (fromDayClicked){
-                    fromDay = formatTime("yyyy-MM-dd hh:mm:ss", calendar.getTime(), Locale.ENGLISH);
+                    fromDay = formatTime("yyyy-MM-dd", calendar.getTime(), new Locale("vi", "VN"));
+                    fromDay += " 00:00:00";
                     tvFromDay.setText(formatTime("dd MMMM, yyyy", calendar.getTime(), new Locale("vi", "VN")));
                 } else {
-                    toDay = formatTime("yyyy-MM-dd hh:mm:ss", calendar.getTime(), Locale.ENGLISH);
+                    toDay = formatTime("yyyy-MM-dd", calendar.getTime(), new Locale("vi", "VN"));
+                    toDay += " 23:59:59";
                     tvToDay.setText(formatTime("dd MMMM, yyyy", calendar.getTime(), new Locale("vi", "VN")));
                 }
             }
@@ -121,12 +128,15 @@ public class RevenueFragment extends Fragment {
         /////////////////////////////////////////////////////////////////////////
 
         String startToDay, endToDay;
-        Calendar today = Calendar.getInstance();
+        Calendar today = Calendar.getInstance(new Locale("vi", "VN"));
+
+        today.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
+        Log.v("timezones", today.getTimeZone().getID());
+
         today.setTime(new Date());
-        today.set(today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH), 0,0,0);
-        startToDay = formatTime("yyyy-MM-dd hh:mm:ss", today.getTime(), Locale.ENGLISH);
-        today.set(today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH), 23,59,0);
-        endToDay = formatTime("yyyy-MM-dd hh:mm:ss", today.getTime(), Locale.ENGLISH);
+        startToDay = formatTime("yyyy-MM-dd", today.getTime(), new Locale("vi", "VN"));
+        startToDay += " 00:00:00";
+        endToDay = formatTime("yyyy-MM-dd HH:mm:ss", new Date(), new Locale("vi", "VN"));
         new GetRevenueTask(startToDay, endToDay, true);
 
         ////////////////////////////////////////////////////////////////////////
@@ -150,15 +160,23 @@ public class RevenueFragment extends Fragment {
         ibSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String startTime = null;
-                String endTime = null;
-                try {
-                    startTime = URLEncoder.encode(fromDay, "utf-8");
-                    endTime = URLEncoder.encode(toDay, "utf-8");
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-                new GetRevenueTask(startTime, endTime, false);
+                new GetRevenueTask(fromDay, toDay, false);
+            }
+        });
+
+        layoutRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                String startToDay, endToDay;
+                Calendar today = Calendar.getInstance(new Locale("vi", "VN"));
+
+                today.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
+
+                today.setTime(new Date());
+                startToDay = formatTime("yyyy-MM-dd", today.getTime(), new Locale("vi", "VN"));
+                startToDay += " 00:00:00";
+                endToDay = formatTime("yyyy-MM-dd HH:mm:ss", new Date(), new Locale("vi", "VN"));
+                new GetRevenueTask(startToDay, endToDay, true);
             }
         });
     }
@@ -253,6 +271,7 @@ public class RevenueFragment extends Fragment {
             super.onPostExecute(s);
 
             progressBar.setVisibility(View.INVISIBLE);
+            layoutRefresh.setRefreshing(false);
 
             switch (resultCode) {
                 case ResultsCode.SUCCESS:

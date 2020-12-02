@@ -29,65 +29,197 @@
         android:layout_above="@id/layoutButtons"
         android:padding="10dp"
         android:id="@+id/layoutProgressBar">
-        <TextView
+        <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/tvBranch"
-            android:textStyle="bold"
-            android:textSize="22sp"
-            android:textColor="#000000"
-            android:layout_marginBottom="5dp"
-            android:text="@string/branch"/>
+            android:layout_above="@+id/layoutPaymentInfo">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/tvBranch"
+                    android:textStyle="bold"
+                    android:textSize="22sp"
+                    android:textColor="#000000"
+                    android:layout_marginBottom="5dp"
+                    android:text="@string/branch"/>
 
-        <ImageView
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:id="@+id/ivBranch"
-            android:layout_below="@id/tvBranch"/>
-        <TextView
-            android:layout_width="wrap_content"
+                <ImageView
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:id="@+id/ivBranch"
+                    android:layout_below="@id/tvBranch"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toEndOf="@id/ivBranch"
+                    android:layout_alignTop="@id/ivBranch"
+                    android:textSize="23sp"
+                    android:fontFamily="sans-serif-black"
+                    android:textColor="@android:color/holo_red_dark"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:id="@+id/tvBranchName"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toEndOf="@id/ivBranch"
+                    android:layout_below="@id/tvBranchName"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif-condensed-light"
+                    android:textColor="#000000"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:maxLines="3"
+                    android:drawablePadding="5dp"
+                    android:id="@+id/tvAddress"
+                    app:drawableStartCompat="@drawable/ic_location_on_24" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/tvOrders"
+                    android:textStyle="bold"
+                    android:textSize="22sp"
+                    android:textColor="#000000"
+                    android:layout_marginBottom="5dp"
+                    android:layout_below="@+id/ivBranch"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/customer_order"/>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/recyclerView"
+                    android:layout_below="@+id/tvOrders"
+                    />
+            </RelativeLayout>
+        </androidx.core.widget.NestedScrollView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_toEndOf="@id/ivBranch"
-            android:layout_alignTop="@id/ivBranch"
-            android:textSize="23sp"
-            android:fontFamily="sans-serif-black"
-            android:textColor="@android:color/holo_red_dark"
-            android:paddingStart="10dp"
+            android:orientation="vertical"
+            android:background="#FFFFFF"
             android:paddingEnd="10dp"
-            android:id="@+id/tvBranchName"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_toEndOf="@id/ivBranch"
-            android:layout_below="@id/tvBranchName"
-            android:textSize="15sp"
-            android:fontFamily="sans-serif-condensed-light"
-            android:textColor="#000000"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp"
-            android:maxLines="3"
-            android:drawablePadding="5dp"
-            android:id="@+id/tvAddress"
-            app:drawableStartCompat="@drawable/ic_location_on_24" />
+            android:layout_alignParentBottom="true"
+            android:id="@+id/layoutPaymentInfo">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_bottom_border">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sum"
+                    android:fontFamily="sans-serif-condensed-medium"
+                    android:textColor="#000000"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:padding="10dp"
+                    android:id="@+id/tvTotalVictuals"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0đ"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignTop="@+id/tvTotalVictuals"
+                    android:layout_alignBottom="@+id/tvTotalVictuals"
+                    android:gravity="center_vertical"
+                    android:textSize="18sp"
+                    android:textColor="#000000"
+                    android:textStyle="bold"
+                    android:id="@+id/tvTotal"/>
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_bottom_border">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/merchant_commission"
+                    android:fontFamily="sans-serif-condensed-medium"
+                    android:textColor="#000000"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:padding="10dp"
+                    android:id="@+id/tvMerchantCommissionTitle"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0đ"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignTop="@+id/tvMerchantCommissionTitle"
+                    android:layout_alignBottom="@+id/tvMerchantCommissionTitle"
+                    android:gravity="center_vertical"
+                    android:textSize="18sp"
+                    android:textColor="#000000"
+                    android:textStyle="bold"
+                    android:id="@+id/tvMerchantCommission"/>
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/give_to_merchant"
+                    android:fontFamily="sans-serif-condensed-medium"
+                    android:textColor="#000000"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:padding="10dp"
+                    android:layout_alignParentStart="true"
+                    android:layout_toStartOf="@+id/tvTienDuaChoMerchant"
+                    android:maxLines="2"
+                    android:id="@+id/tvTotalTitle"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0đ"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignTop="@+id/tvTotalTitle"
+                    android:layout_alignBottom="@+id/tvTotalTitle"
+                    android:gravity="center_vertical"
+                    android:textSize="25sp"
+                    android:textColor="@color/light_red"
+                    android:textStyle="bold"
+                    android:id="@+id/tvTienDuaChoMerchant"/>
+            </RelativeLayout>
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/tvOrders"
-            android:textStyle="bold"
-            android:textSize="22sp"
-            android:textColor="#000000"
-            android:layout_marginBottom="5dp"
-            android:layout_below="@+id/ivBranch"
-            android:layout_marginTop="10dp"
-            android:text="@string/customer_order"/>
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/recyclerView"
-            android:layout_below="@+id/tvOrders"
-            android:layout_alignParentBottom="true" />
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/tien_thu_cua_khach"
+                    android:fontFamily="sans-serif-condensed-medium"
+                    android:textColor="#000000"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:padding="10dp"
+                    android:layout_alignParentStart="true"
+                    android:layout_toStartOf="@+id/tvTienThuCuaKhach"
+                    android:maxLines="2"
+                    android:id="@+id/tvTotalCustomerTitle"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0đ"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignTop="@+id/tvTotalCustomerTitle"
+                    android:layout_alignBottom="@+id/tvTotalCustomerTitle"
+                    android:gravity="center_vertical"
+                    android:textSize="25sp"
+                    android:textColor="@color/light_red"
+                    android:textStyle="bold"
+                    android:id="@+id/tvTienThuCuaKhach"/>
+            </RelativeLayout>
+        </LinearLayout>
     </RelativeLayout>
 
     <LinearLayout
@@ -100,13 +232,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/picked_order"
-            android:textSize="14sp"
+            android:textSize="12sp"
             android:textColor="#FFFFFF"
             android:background="@color/colorPrimary"
-            android:fontFamily="sans-serif-condensed"
+            android:fontFamily="sans-serif-condensed-medium"
             android:id="@+id/btnShipping"
             android:gravity="center"
-            android:padding="10dp"
             android:drawableStart="@drawable/ic_check_24"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
@@ -115,13 +246,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/confirm_shipped"
-            android:textSize="14sp"
+            android:textSize="12sp"
             android:textColor="#FFFFFF"
             android:background="@color/colorPrimary"
-            android:fontFamily="sans-serif-condensed"
+            android:fontFamily="sans-serif-condensed-medium"
             android:id="@+id/btnShipped"
             android:gravity="center"
-            android:padding="10dp"
             app:drawableStartCompat="@drawable/ic_done_all_24"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
@@ -130,13 +260,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/confirm_cancel"
-            android:textSize="14sp"
+            android:textSize="12sp"
             android:textColor="#FFFFFF"
             android:background="@color/light_red"
-            android:fontFamily="sans-serif-condensed"
+            android:fontFamily="sans-serif-condensed-medium"
             android:id="@+id/btnCancelOrder"
             android:gravity="center"
-            android:padding="10dp"
             app:drawableStartCompat="@drawable/ic_close_white_24"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"

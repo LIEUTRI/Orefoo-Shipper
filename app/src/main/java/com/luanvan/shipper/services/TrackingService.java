@@ -41,6 +41,7 @@ import com.luanvan.shipper.components.Shared;
 public class TrackingService extends Service {
     private static final String TAG = "TrackingService";
     private int shipperId;
+    public static double latitude = 0, longitude = 0;
 
     @Override
     public IBinder onBind(Intent intent) {

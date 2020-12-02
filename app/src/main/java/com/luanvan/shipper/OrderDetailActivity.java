@@ -40,6 +40,7 @@ public class OrderDetailActivity extends AppCompatActivity implements View.OnCli
     private RelativeLayout layoutProgressBar;
     private ProgressBar progressBar;
     private RecyclerView recyclerView;
+    private TextView tvTotal, tvShippingFee, tvTotalFinal;
 
     private String token;
     private int shipperId;
@@ -59,6 +60,7 @@ public class OrderDetailActivity extends AppCompatActivity implements View.OnCli
     private String orderStatus;
     private ArrayList<Victual> victuals = new ArrayList<>();
 
+    @SuppressLint({"DefaultLocale", "SetTextI18n"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,6 +73,9 @@ public class OrderDetailActivity extends AppCompatActivity implements View.OnCli
         tvReject = findViewById(R.id.tvReject);
         layoutProgressBar = findViewById(R.id.layoutProgressBar);
         recyclerView = findViewById(R.id.recyclerView);
+        tvTotal = findViewById(R.id.tvTotal);
+        tvShippingFee = findViewById(R.id.tvShippingFee);
+        tvTotalFinal = findViewById(R.id.tvTotalFinal);
 
         orderId = getIntent().getIntExtra("id", -1);
         totalPay = getIntent().getDoubleExtra("totalPay", 0);
@@ -114,6 +119,10 @@ public class OrderDetailActivity extends AppCompatActivity implements View.OnCli
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(new RecyclerViewVictualAdapter(this, victuals));
+
+        tvTotal.setText(String.format("%,.0f", victualsPrice) + "đ");
+        tvShippingFee.setText(String.format("%,.0f", shippingFee) + "đ");
+        tvTotalFinal.setText(String.format("%,.0f", totalPay) + "đ");
 
         tvAccept.setOnClickListener(this);
         tvReject.setOnClickListener(this);

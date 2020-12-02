@@ -80,6 +80,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class ManagerProfileActivity extends AppCompatActivity implements View.OnClickListener {
@@ -90,7 +91,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
     private TextView tvSave;
     private ProgressBar progressBar;
     private RelativeLayout layoutProgressBar;
-    private EditText etFirstName, etLastName, etPhone, etEmail, etGender, etDOB, etDriverLicense,etIdCardNumber;
+    private EditText etFirstName, etLastName, etPhone, etEmail, etGender, etDOB, etDriverLicense, etIdCardNumber;
     private TextView tvName, tvPhone, tvUserStatus;
 
     private Uri uriSavedImageFront, uriSavedImageBack;
@@ -127,6 +128,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
     private String profileImage;
 
     public final String TAG = "ManagerProfileActivity";
+
     @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -171,13 +173,13 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
         idCardBack = getIntent().getStringExtra("idCardBack");
         profileImage = getIntent().getStringExtra("profileImage");
 
-        tvName.setText(firstName != null ? lastName +" "+ firstName : "");
+        tvName.setText(firstName != null ? lastName + " " + firstName : "");
         tvPhone.setText(phoneNumber);
 
         // set Profile image
         ivProfile.setImageResource(R.drawable.ic_person_24);
         ivProfile.setCircleBackgroundColorResource(R.color.light_gray);
-        if (profileImage != null && profileImage.length() > 1){
+        if (profileImage != null && profileImage.length() > 1) {
             RequestOptions options = new RequestOptions()
                     .centerCrop()
                     .placeholder(R.drawable.ic_person_24)
@@ -187,7 +189,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
 
         ivChangePhoto.setImageResource(R.drawable.ic_edit_20);
         ivChangePhoto.setCircleBackgroundColorResource(R.color.colorPrimary);
-        ivChangePhoto.setPadding(5,5,5,5);
+        ivChangePhoto.setPadding(5, 5, 5, 5);
 
         etFirstName.setText(firstName);
         etLastName.setText(lastName);
@@ -206,42 +208,42 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
             e.printStackTrace();
         }
 
-        if (idCardFront != null && idCardFront.length() > 1){
+        if (idCardFront != null && idCardFront.length() > 1) {
             Glide.with(this)
-                .load(idCardFront)
-                .listener(new RequestListener<Drawable>() {
-                    @Override
-                    public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                        return false;
-                    }
+                    .load(idCardFront)
+                    .listener(new RequestListener<Drawable>() {
+                        @Override
+                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                            return false;
+                        }
 
-                    @Override
-                    public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                        ivSlotFront.setVisibility(View.VISIBLE);
-                        ivRemoveImageFront.setVisibility(View.VISIBLE);
-                        return false;
-                    }
-                })
-                .into(ivSlotFront);
+                        @Override
+                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                            ivSlotFront.setVisibility(View.VISIBLE);
+                            ivRemoveImageFront.setVisibility(View.VISIBLE);
+                            return false;
+                        }
+                    })
+                    .into(ivSlotFront);
         }
 
-        if (idCardBack != null && idCardBack.length() > 1){
+        if (idCardBack != null && idCardBack.length() > 1) {
             Glide.with(this)
-                .load(idCardBack)
-                .listener(new RequestListener<Drawable>() {
-                    @Override
-                    public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                        return false;
-                    }
+                    .load(idCardBack)
+                    .listener(new RequestListener<Drawable>() {
+                        @Override
+                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                            return false;
+                        }
 
-                    @Override
-                    public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                        ivSlotBack.setVisibility(View.VISIBLE);
-                        ivRemoveImageBack.setVisibility(View.VISIBLE);
-                        return false;
-                    }
-                })
-                .into(ivSlotBack);
+                        @Override
+                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                            ivSlotBack.setVisibility(View.VISIBLE);
+                            ivRemoveImageBack.setVisibility(View.VISIBLE);
+                            return false;
+                        }
+                    })
+                    .into(ivSlotBack);
         }
 
         /////////////////////////////////////////////////////////////////////////
@@ -254,10 +256,10 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
         sharedPreferences = getSharedPreferences(Shared.SHIPPER, Context.MODE_PRIVATE);
         userStatus = sharedPreferences.getString(Shared.KEY_USER_STATUS, "");
 
-        if (userStatus.equals("verified")){
+        if (userStatus.equals("active")) {
             tvUserStatus.setTextColor(getColor(R.color.green));
             tvUserStatus.setText(getString(R.string.verified));
-        } else if (userStatus.equals("waiting_verify")){
+        } else if (userStatus.equals("waiting_verify")) {
             tvUserStatus.setTextColor(getColor(R.color.orange));
             tvUserStatus.setText(getString(R.string.waiting_verify));
         } else {
@@ -283,7 +285,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
                 calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
                 updateUIDate();
 
-                dayOfBirth = year+"-"+month+"-"+dayOfMonth;
+                dayOfBirth = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).format(calendar.getTime());
             }
 
             private void updateUIDate() {
@@ -304,24 +306,24 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
     }
 
 
-
-    private void showProgressBar(RelativeLayout layout, ProgressBar progressBar){
+    private void showProgressBar(RelativeLayout layout, ProgressBar progressBar) {
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(100, 100);
         params.addRule(RelativeLayout.CENTER_IN_PARENT);
         layout.addView(progressBar, params);
         progressBar.setVisibility(View.VISIBLE);
     }
-    private void hideProgressBar(ProgressBar progressBar){
+
+    private void hideProgressBar(ProgressBar progressBar) {
         progressBar.setVisibility(View.INVISIBLE);
     }
 
     @SuppressLint("NonConstantResourceId")
     @Override
     public void onClick(View v) {
-        switch (v.getId()){
+        switch (v.getId()) {
             case R.id.tvSlotFront:
-                TEMP_IMAGE_NAME = "shipper"+shipperId+"_front.jpg";
-                TEMP_IMAGE_NAME1 = "shipper"+shipperId+"_front.jpg";
+                TEMP_IMAGE_NAME = "shipper" + shipperId + "_front.jpg";
+                TEMP_IMAGE_NAME1 = "shipper" + shipperId + "_front.jpg";
 
                 if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
                         checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
@@ -334,8 +336,8 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
                 startActivityForResult(intentChooser, RequestCode.REQUEST_PICK_PICTURE_1);
                 break;
             case R.id.tvSlotBack:
-                TEMP_IMAGE_NAME = "shipper"+shipperId+"_back.jpg";
-                TEMP_IMAGE_NAME2 = "shipper"+shipperId+"_back.jpg";
+                TEMP_IMAGE_NAME = "shipper" + shipperId + "_back.jpg";
+                TEMP_IMAGE_NAME2 = "shipper" + shipperId + "_back.jpg";
 
                 if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
                         checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
@@ -361,7 +363,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
             case R.id.tvSave:
                 progressBar.setVisibility(View.VISIBLE);
 
-                if (uriProfile == null && uriSavedImageFront == null && uriSavedImageBack == null){
+                if (uriProfile == null && uriSavedImageFront == null && uriSavedImageBack == null) {
                     //mean not change image
                     new UpdateProfileTask().execute();
                     return;
@@ -369,7 +371,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
 
                 uploadImage(uriProfile, TEMP_IMAGE_NAME_PROFILE);
 
-                if (ivSlotFront.getDrawable() == null || ivSlotBack.getDrawable() == null){
+                if (ivSlotFront.getDrawable() == null || ivSlotBack.getDrawable() == null) {
                     Toast.makeText(ManagerProfileActivity.this, getResources().getString(R.string.enough_images), Toast.LENGTH_LONG).show();
                 } else {
                     uploadImage(uriSavedImageFront, TEMP_IMAGE_NAME1);
@@ -402,7 +404,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode){
+        switch (requestCode) {
             case RequestCode.REQUEST_PICK_PICTURE_1:
                 if (resultCode != RESULT_OK) break;
 
@@ -410,7 +412,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
                 if (!uriSavedImageFront.getPath().contains(getPackageName()))
                     uriSavedImageFront = Uri.fromFile(new File(getRealPathFromUri(ManagerProfileActivity.this, uriSavedImageFront)));
 
-                Log.i(TAG, "--> "+uriSavedImageFront.getPath());
+                Log.i(TAG, "--> " + uriSavedImageFront.getPath());
 
                 ivSlotFront.setImageDrawable(null);
                 ivSlotFront.setImageURI(uriSavedImageFront);
@@ -426,7 +428,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
                 if (!uriSavedImageBack.getPath().contains(getPackageName()))
                     uriSavedImageBack = Uri.fromFile(new File(getRealPathFromUri(ManagerProfileActivity.this, uriSavedImageBack)));
 
-                Log.i(TAG, "--> "+uriSavedImageBack.getPath());
+                Log.i(TAG, "--> " + uriSavedImageBack.getPath());
 
                 ivSlotBack.setImageDrawable(null);
                 ivSlotBack.setImageURI(uriSavedImageBack);
@@ -442,7 +444,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
                 if (!uriProfile.getPath().contains(getPackageName()))
                     uriProfile = Uri.fromFile(new File(getRealPathFromUri(ManagerProfileActivity.this, uriProfile)));
 
-                Log.i(TAG, "-->profile: "+uriProfile.getPath());
+                Log.i(TAG, "-->profile: " + uriProfile.getPath());
 
                 ivProfile.setImageDrawable(null);
                 ivProfile.setImageURI(uriProfile);
@@ -493,13 +495,13 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
         }
     }
 
-    private void uploadImage(final Uri uriImage, final String newName){
+    private void uploadImage(final Uri uriImage, final String newName) {
         if (uriImage == null) return;
 
         showProgressBar(layoutProgressBar, progressBar);
 
         // location to save images in Firebase
-        shipperImagesRef = storageRef.child("images/"+newName);
+        shipperImagesRef = storageRef.child("images/" + newName);
 
         UploadTask uploadTask = shipperImagesRef.putFile(uriImage);
 
@@ -513,31 +515,36 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
             @Override
             public void onFailure(@NonNull Exception e) {
                 hideProgressBar(progressBar);
-                Toast.makeText(ManagerProfileActivity.this, "Could not uploaded. Error: "+e.getMessage(), Toast.LENGTH_LONG).show();
+                Toast.makeText(ManagerProfileActivity.this, "Could not uploaded. Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
     }
 
-    private void getUrl (final String fileName){
+    private void getUrl(final String fileName) {
         StorageReference storageRef = FirebaseStorage.getInstance().getReference("images");
         StorageReference dateRef = storageRef.child(fileName);
-        dateRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>()
-        {
+        dateRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
             @Override
             public void onSuccess(Uri downloadUrl) {
-                Log.i("ManagerProfileActivity", "imageUrl: "+downloadUrl.toString());
+                Log.i("ManagerProfileActivity", "imageUrl: " + downloadUrl.toString());
                 Debug.writeLog(downloadUrl.toString());
 
-                if (fileName.contains("front")){
+                if (fileName.contains("front")) {
                     idCardFront = downloadUrl.toString();
-                } else if (fileName.contains("back")){
+                } else if (fileName.contains("back")) {
                     idCardBack = downloadUrl.toString();
                 } else {
                     profileImage = downloadUrl.toString();
                 }
 
-                // update profile task
-                new UpdateProfileTask().execute();
+                if (idCardFront != null && idCardFront.length() > 1
+                        && idCardBack != null && idCardBack.length() > 1
+                        && profileImage != null && profileImage.length() > 1) {
+                    // update profile task
+                    new UpdateProfileTask().execute();
+                } else {
+                    Toast.makeText(ManagerProfileActivity.this, getString(R.string.need_provide_enough_info), Toast.LENGTH_LONG).show();
+                }
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
@@ -569,6 +576,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
 
         return chooserIntent;
     }
+
     private static List<Intent> addIntentsToList(Context context, List<Intent> list, Intent intent) {
         List<ResolveInfo> resInfo = context.getPackageManager().queryIntentActivities(intent, 0);
         for (ResolveInfo resolveInfo : resInfo) {
@@ -586,19 +594,20 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
         if (resultCode == Activity.RESULT_OK) {
 
             boolean isCamera = (imageReturnedIntent == null ||
-                    imageReturnedIntent.getData() == null  ||
+                    imageReturnedIntent.getData() == null ||
                     imageReturnedIntent.getData().toString().contains(imageFile.toString()));
             if (isCamera) {     /** CAMERA **/
                 selectedImage = Uri.fromFile(imageFile);
-                Log.i("ManagerProfileActivity", "uri: "+selectedImage.getPath());
+                Log.i("ManagerProfileActivity", "uri: " + selectedImage.getPath());
             } else {            /** GALLERY **/
                 selectedImage = imageReturnedIntent.getData();
-                Log.i("ManagerProfileActivity", "uri: "+selectedImage.getPath());
-                Log.i("ManagerProfileActivity", "path: "+getRealPathFromUri(context, selectedImage));
+                Log.i("ManagerProfileActivity", "uri: " + selectedImage.getPath());
+                Log.i("ManagerProfileActivity", "path: " + getRealPathFromUri(context, selectedImage));
             }
         }
         return selectedImage;
     }
+
     public static Bitmap getImageFromResult(Context context, int resultCode, Intent imageReturnedIntent) {
         Bitmap bm = null;
         @SuppressLint("RestrictedApi")
@@ -606,7 +615,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
         if (resultCode == Activity.RESULT_OK) {
             Uri selectedImage;
             boolean isCamera = (imageReturnedIntent == null ||
-                    imageReturnedIntent.getData() == null  ||
+                    imageReturnedIntent.getData() == null ||
                     imageReturnedIntent.getData().toString().contains(imageFile.toString()));
             if (isCamera) {     /** CAMERA **/
                 selectedImage = Uri.fromFile(imageFile);
@@ -625,7 +634,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
     public static String getRealPathFromUri(Context context, Uri contentUri) {
         Cursor cursor = null;
         try {
-            String[] proj = { MediaStore.Images.Media.DATA };
+            String[] proj = {MediaStore.Images.Media.DATA};
             cursor = context.getContentResolver().query(contentUri, proj, null, null, null);
             int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
             cursor.moveToFirst();
@@ -638,7 +647,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
     }
 
     private static File getTempFile(Context context) {
-        File imageFile = new File(Environment.getExternalStorageDirectory()+"/Android/media/com.luanvan.shipper/images", TEMP_IMAGE_NAME);
+        File imageFile = new File(Environment.getExternalStorageDirectory() + "/Android/media/com.luanvan.shipper/images", TEMP_IMAGE_NAME);
         imageFile.getParentFile().mkdirs();
 
         return imageFile;
@@ -686,6 +695,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
         }
         return rotation;
     }
+
     private static int getRotationFromCamera(Context context, Uri imageFile) {
         int rotate = 0;
         try {
@@ -712,6 +722,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
         }
         return rotate;
     }
+
     public static int getRotationFromGallery(Context context, Uri imageUri) {
         int result = 0;
         String[] columns = {MediaStore.Images.Media.ORIENTATION};
@@ -731,6 +742,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
         }//End of try-catch block
         return result;
     }
+
     private static Bitmap rotate(Bitmap bm, int rotation) {
         if (rotation != 0) {
             Matrix matrix = new Matrix();
@@ -743,7 +755,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
 
     /////////////////////////////////////////////////////////////////////////////////////////
     @SuppressLint("StaticFieldLeak")
-    private class UpdateProfileTask extends AsyncTask<String,String,String> {
+    private class UpdateProfileTask extends AsyncTask<String, String, String> {
 
         private OutputStream os;
 
@@ -756,11 +768,11 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
         @Override
         protected String doInBackground(String... strings) {
             HttpURLConnection connection = null;
-            //http post
+
             try {
                 URL url = new URL(RequestUrl.SHIPPER + shipperId);
 
-                Log.i(TAG, "request update: "+url.toString());
+                Log.i(TAG, "request update: " + url.toString());
 
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("firstName", etFirstName.getText().toString());
@@ -793,9 +805,9 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
 
                 InputStream is;
                 int statusCode = connection.getResponseCode();
-                Log.i("statusCode", statusCode+"");
+                Log.i("statusCode", statusCode + "");
                 if (statusCode == 200) return "200";
-                if (statusCode >= 200 && statusCode < 400){
+                if (statusCode >= 200 && statusCode < 400) {
                     is = connection.getInputStream();
                 } else {
                     is = connection.getErrorStream();
@@ -803,8 +815,8 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
 
                 BufferedReader reader = new BufferedReader(new InputStreamReader(is));
                 StringBuilder buffer = new StringBuilder();
-                String line = "";
-                while ((line = reader.readLine()) != null){
+                String line;
+                while ((line = reader.readLine()) != null) {
                     buffer.append(line).append("\n");
                     Log.d("ResponseUpdateProfile: ", "> " + line);
                 }
@@ -812,11 +824,11 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
 
             } catch (SocketTimeoutException e) {
                 return "0";
-            } catch (IOException | JSONException e){
+            } catch (IOException | JSONException e) {
                 e.printStackTrace();
             } finally {
                 try {
-                    if (os!=null) os.close();
+                    if (os != null) os.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -833,7 +845,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
             progressBar.setVisibility(View.INVISIBLE);
 
             if (s == null) return;
-            if (s.equals("200")){
+            if (s.equals("200")) {
                 Toast.makeText(ManagerProfileActivity.this, getResources().getString(R.string.update_success), Toast.LENGTH_LONG).show();
 
                 SharedPreferences.Editor editor = getSharedPreferences(Shared.SHIPPER, Context.MODE_PRIVATE).edit();
@@ -841,17 +853,19 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
                 editor.putString(Shared.KEY_LAST_NAME, lastName);
                 editor.apply();
 
-                startActivity(new Intent(ManagerProfileActivity.this, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK));
-            } else if (s.equals("0")){
+                Intent intent = new Intent(ManagerProfileActivity.this, MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+            } else if (s.equals("0")) {
                 Toast.makeText(ManagerProfileActivity.this, getResources().getString(R.string.socket_timeout), Toast.LENGTH_LONG).show();
             } else {
                 try {
                     JSONObject jsonObject = new JSONObject(s);
                     JSONObject apierror = jsonObject.getJSONObject("apierror");
-                    if (apierror.getString("status").equals("CONFLICT")){
-                        if (apierror.getString("debugMessage").contains("phone_number")){
+                    if (apierror.getString("status").equals("CONFLICT")) {
+                        if (apierror.getString("debugMessage").contains("phone_number")) {
                             Toast.makeText(ManagerProfileActivity.this, getResources().getString(R.string.conflict_phone), Toast.LENGTH_LONG).show();
-                        } else if (apierror.getString("debugMessage").contains("email")){
+                        } else if (apierror.getString("debugMessage").contains("email")) {
                             Toast.makeText(ManagerProfileActivity.this, getResources().getString(R.string.conflict_email), Toast.LENGTH_LONG).show();
                         }
                     } else {

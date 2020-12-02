@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">Orefoo - Shipper</string>
     <string name="tracking_enabled_notif">Đang chia sẻ vị trí của bạn tới khách hàng.</string>
-    <string name="test_email">orefoo@gmail.com</string>
-    <string name="test_password">orefoo</string>
+    <string name="orefoo_email">orefoo@gmail.com</string>
+    <string name="orefoo_password">orefoo</string>
     <string name="firebase_path">location</string>
     <string name="order">Đơn hàng</string>
     <string name="manager">Quản lý</string>
@@ -87,4 +87,13 @@
     <string name="revenue_special">Thu nhập theo khoảng thời gian</string>
     <string name="from_day">Từ ngày:</string>
     <string name="to_day">Đến ngày:</string>
+    <string name="sum">Tổng</string>
+    <string name="total">Thành tiền</string>
+    <string name="shipping_fee">Phí giao hàng</string>
+    <string name="merchant_commission">Hoa hồng (20%)</string>
+    <string name="give_to_merchant">Tiền đưa cho nhà bán hàng</string>
+    <string name="tien_thu_cua_khach">Tiền thu của khách</string>
+    <string name="confirm">Xác nhận</string>
+    <string name="confirm_picked">Xác nhận đã lấy hàng và tiến hành giao.</string>
+    <string name="need_provide_enough_info">Bạn cần cung cấp đầy đủ thông tin.</string>
 </resources>

@@ -2,15 +2,12 @@ package com.luanvan.shipper.Fragments;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -23,8 +20,6 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.os.SystemClock;
-import android.provider.Settings;
 import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -38,12 +33,10 @@ import android.widget.Toast;
 
 import com.auth0.android.jwt.Claim;
 import com.auth0.android.jwt.JWT;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.luanvan.shipper.Adapter.RecyclerViewOrderAdapter;
 import com.luanvan.shipper.LoginActivity;
-import com.luanvan.shipper.MainActivity;
 import com.luanvan.shipper.ManagerProfileActivity;
 import com.luanvan.shipper.R;
 import com.luanvan.shipper.components.Branch;
@@ -59,25 +52,19 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
-import java.sql.Time;
-import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Objects;
 
 public class OrderFragment extends Fragment implements View.OnClickListener {
 
     private SwitchMaterial switchOrderStatus;
-    private MaterialToolbar toolbar;
     private ImageButton ibRefresh;
     private RecyclerView recyclerView;
 
@@ -109,7 +96,6 @@ public class OrderFragment extends Fragment implements View.OnClickListener {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         switchOrderStatus = view.findViewById(R.id.switchOrderStatus);
-        toolbar = view.findViewById(R.id.toolbar);
         ibRefresh = view.findViewById(R.id.ibRefresh);
         layoutProgressBar = view.findViewById(R.id.layoutProgressBar);
         recyclerView = view.findViewById(R.id.recyclerView);
@@ -120,13 +106,6 @@ public class OrderFragment extends Fragment implements View.OnClickListener {
         super.onActivityCreated(savedInstanceState);
 
         loadSettings();
-
-        //Check this app has location permission
-        int permission = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION);
-        if (permission != PackageManager.PERMISSION_GRANTED) {
-            //request permission
-            ActivityCompat.requestPermissions(getActivity(), new String[] { Manifest.permission.ACCESS_FINE_LOCATION }, RequestCode.REQUEST_PERMISSIONS);
-        }
 
         // ProgressBar ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(100, 100);
@@ -148,7 +127,18 @@ public class OrderFragment extends Fragment implements View.OnClickListener {
             userId = getUserId(token);
 
             new GetUserDataTask().execute();
-            new GetShipperDataTask().execute();
+
+            //Check this app has location permission
+            int permission = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION);
+            if (permission != PackageManager.PERMISSION_GRANTED) {
+                //request permission
+                ActivityCompat.requestPermissions(getActivity(), new String[] { Manifest.permission.ACCESS_FINE_LOCATION }, RequestCode.REQUEST_PERMISSIONS);
+            } else {
+                if (switchOrderStatus.isChecked()){
+                    startTrackerService();
+                    new NhanDonTask().execute();
+                }
+            }
         } else {
             startActivity(new Intent(getActivity(), LoginActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TASK));
         }
@@ -158,8 +148,8 @@ public class OrderFragment extends Fragment implements View.OnClickListener {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked){
                     Toast.makeText(getActivity(), getResources().getString(R.string.receiving_orders), Toast.LENGTH_LONG).show();
-                    new GetUserDataTask().execute();
-                    new GetShipperDataTask().execute();
+                    startTrackerService();
+                    new NhanDonTask().execute();
                     recyclerView.setVisibility(View.VISIBLE);
                 } else {
                     Toast.makeText(getActivity(), getResources().getString(R.string.not_receiving_orders), Toast.LENGTH_LONG).show();
@@ -183,8 +173,11 @@ public class OrderFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
 
-        if (requestCode == RequestCode.REQUEST_PERMISSIONS && grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        if (requestCode == RequestCode.REQUEST_PERMISSIONS && grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED
+            && switchOrderStatus.isChecked()) {
+
             startTrackerService();
+            new NhanDonTask().execute();
         } else {
             Toast.makeText(getActivity(), "Please enable location services to allow GPS tracking", Toast.LENGTH_SHORT).show();
         }
@@ -316,25 +309,9 @@ public class OrderFragment extends Fragment implements View.OnClickListener {
                 case ResultsCode.SUCCESS:
                     try {
                         JSONObject jsonUser = new JSONObject(result);
-
                         userStatus = jsonUser.getString("userStatus");
 
-                        SharedPreferences.Editor editor = getActivity().getSharedPreferences(Shared.SHIPPER, Context.MODE_PRIVATE).edit();
-                        editor.putString(Shared.KEY_USER_STATUS, userStatus);
-                        editor.apply();
-
-                        if (userStatus.equals("just_created")){
-
-                        } else if (userStatus.equals("waiting_verify")){
-                            switchOrderStatus.setChecked(false);
-                            switchOrderStatus.setEnabled(false);
-                            String sourceString = "<span style=\"text-align: center;\">"+getString(R.string.receive_order)+"</span><br><i style=\"font-size:8px;\">(Tài khoản chưa xác thực)</i>";
-                            switchOrderStatus.setText(Html.fromHtml(sourceString));
-                            ibRefresh.setEnabled(false);
-                        } else {
-                            switchOrderStatus.setText(getString(R.string.receive_order));
-                            ibRefresh.setEnabled(true);
-                        }
+                        new GetShipperDataTask().execute();
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -430,47 +407,29 @@ public class OrderFragment extends Fragment implements View.OnClickListener {
                         editor.putInt(Shared.KEY_SHIPPER_ID, jsonShipper.getInt("id"));
                         editor.putString(Shared.KEY_FIRST_NAME, jsonShipper.getString("firstName"));
                         editor.putString(Shared.KEY_LAST_NAME, jsonShipper.getString("lastName"));
+                        editor.putString(Shared.KEY_USER_STATUS, userStatus);
                         editor.apply();
 
                         if (userStatus.equals("just_created")){
                             startActivity(new Intent(getActivity(), ManagerProfileActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TASK));
-                        }
-
-                        //Check this app has location permission
-                        int permission = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION);
-                        if (permission == PackageManager.PERMISSION_GRANTED) {
-                            if (!isMyServiceRunning(TrackingService.class) && !userStatus.equals("just_created") && !userStatus.equals("waiting_verify")){
-                                startTrackerService();
-
-                                int i = 0;
-                                while (i < 20){
-
-                                    try {
-                                        Thread.sleep(1000);
-                                    } catch (InterruptedException e) {
-                                        e.printStackTrace();
-                                    }
-
-                                    SharedPreferences sharedPreferences = getActivity().getSharedPreferences(Shared.SHIPPER, Context.MODE_PRIVATE);
-                                    if (!sharedPreferences.getString(Shared.KEY_LATITUDE, "0").equals("0")){
-                                        Log.i(TAG, "shipper location: " + sharedPreferences.getString(Shared.KEY_LATITUDE, "0") +
-                                                sharedPreferences.getString(Shared.KEY_LONGITUDE, "0"));
-
-                                        String lat = sharedPreferences.getString(Shared.KEY_LATITUDE, "0");
-                                        String lng = sharedPreferences.getString(Shared.KEY_LONGITUDE, "0");
-
-                                        new GetOrderTask().execute(lat, lng);
-
-                                        break;
-                                    }
-                                    i++;
-                                    Log.i(TAG, "count: "+i);
-                                }
-                            }
+                        } else if (userStatus.equals("waiting_verify")){
+                            switchOrderStatus.setChecked(false);
+                            switchOrderStatus.setEnabled(false);
+                            String sourceString = "<span style=\"text-align: center;\">"+getString(R.string.receive_order)+"</span><br><i style=\"font-size:8px;\">(Tài khoản chưa xác thực)</i>";
+                            switchOrderStatus.setText(Html.fromHtml(sourceString));
+                            ibRefresh.setEnabled(false);
                         } else {
-                            //request permission
-                            ActivityCompat.requestPermissions(getActivity(), new String[] { Manifest.permission.ACCESS_FINE_LOCATION }, RequestCode.REQUEST_PERMISSIONS);
+
+                            switchOrderStatus.setText(getString(R.string.receive_order));
+                            ibRefresh.setEnabled(true);
+
+                            if (switchOrderStatus.isChecked()) {
+                                startTrackerService();
+                                new NhanDonTask().execute();
+                            }
                         }
+
+
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -487,7 +446,46 @@ public class OrderFragment extends Fragment implements View.OnClickListener {
         }
     }
 
+    @SuppressLint("StaticFieldLeak")
+    private class NhanDonTask extends AsyncTask<String, String[], String[]>{
 
+        @Override
+        protected String[] doInBackground(String... strings) {
+            if (isMyServiceRunning(TrackingService.class)){
+                String lat = "", lng = "";
+
+                int i = 0;
+                while (i < 20){
+
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    SharedPreferences sharedPreferences = getActivity().getSharedPreferences(Shared.SHIPPER, Context.MODE_PRIVATE);
+                    if (!sharedPreferences.getString(Shared.KEY_LATITUDE, "0").equals("0")){
+                        lat = sharedPreferences.getString(Shared.KEY_LATITUDE, "0");
+                        lng = sharedPreferences.getString(Shared.KEY_LONGITUDE, "0");
+
+                        break;
+                    }
+                    i++;
+                    Log.i(TAG, "count: "+i);
+                }
+
+                return new String[]{lat+"", lng+""};
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String[] s) {
+            super.onPostExecute(s);
+
+            if (s != null) new GetOrderTask().execute(s[0], s[1]);
+        }
+    }
 
     @SuppressLint("StaticFieldLeak")
     class GetOrderTask extends AsyncTask<String,String,String> {
@@ -565,6 +563,7 @@ public class OrderFragment extends Fragment implements View.OnClickListener {
                     try {
                         orders.clear();
                         JSONArray jsonArray = new JSONArray(s);
+                        Log.i(TAG, "Order size: " + jsonArray.length());
                         for (int i=0; i<jsonArray.length(); i++){
                             JSONObject jsonOrder = jsonArray.getJSONObject(i);
                             JSONObject jsonBranch = jsonOrder.getJSONObject("branch");

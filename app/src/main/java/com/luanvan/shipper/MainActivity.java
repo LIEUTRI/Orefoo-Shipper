@@ -64,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         viewPager.setAdapter(viewPagerFragmentAdapter);
         viewPager.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL);
         viewPager.setPageTransformer(new MarginPageTransformer(500));
+        viewPager.setUserInputEnabled(false);
         onPageChangeCallback = new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -165,8 +166,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void loginToFirebase() {
-        String email = getString(R.string.test_email);
-        String password = getString(R.string.test_password);
+        String email = getString(R.string.orefoo_email);
+        String password = getString(R.string.orefoo_password);
 
         FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
