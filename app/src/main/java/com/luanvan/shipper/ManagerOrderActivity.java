@@ -2,6 +2,7 @@ package com.luanvan.shipper;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -10,9 +11,11 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -22,6 +25,7 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.luanvan.shipper.Adapter.RecyclerViewVictualAdapter;
 import com.luanvan.shipper.components.Branch;
 import com.luanvan.shipper.components.RequestUrl;
@@ -43,6 +47,7 @@ public class ManagerOrderActivity extends AppCompatActivity implements View.OnCl
     private ProgressBar progressBar;
     private RecyclerView recyclerView;
     private TextView tvTotal, tvMerchantCommission, tvTienDuaChoMerchant, tvTienThuCuaKhach;
+    private MaterialToolbar toolbar;
 
     private String token;
     private int shipperId;
@@ -79,6 +84,7 @@ public class ManagerOrderActivity extends AppCompatActivity implements View.OnCl
         tvMerchantCommission = findViewById(R.id.tvMerchantCommission);
         tvTienDuaChoMerchant = findViewById(R.id.tvTienDuaChoMerchant);
         tvTienThuCuaKhach = findViewById(R.id.tvTienThuCuaKhach);
+        toolbar = findViewById(R.id.toolbar);
 
         orderId = getIntent().getIntExtra("id", -1);
         totalPay = getIntent().getDoubleExtra("totalPay", 0);
@@ -145,6 +151,17 @@ public class ManagerOrderActivity extends AppCompatActivity implements View.OnCl
         btnShipping.setOnClickListener(this);
         btnShipped.setOnClickListener(this);
         btnCancelOrder.setOnClickListener(this);
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                if (item.getItemId() == R.id.btnMap){
+                    Intent intent = new Intent(android.content.Intent.ACTION_VIEW,
+                            Uri.parse("https://www.google.com/maps/dir/?api=1&destination="+latitude+","+longitude+"&travelmode=DRIVING"));
+                    startActivity(intent);
+                }
+                return true;
+            }
+        });
     }
 
     @Override
@@ -250,6 +267,8 @@ public class ManagerOrderActivity extends AppCompatActivity implements View.OnCl
             if (s == null) return;
             if (s.equals("200")){
                 Toast.makeText(ManagerOrderActivity.this, "OK", Toast.LENGTH_LONG).show();
+
+                Log.d("orderStatus", orderStatus);
 
                 Intent intent = new Intent();
                 intent.putExtra("orderStatus", orderStatus);

@@ -36,9 +36,12 @@ import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class RecyclerViewOrderAdapter extends RecyclerView.Adapter<RecyclerViewOrderAdapter.ViewHolder>{
     private List<Order> list;
@@ -75,7 +78,7 @@ public class RecyclerViewOrderAdapter extends RecyclerView.Adapter<RecyclerViewO
         Timestamp timestamp = Timestamp.valueOf(order.getTime().substring(0, order.getTime().indexOf("+")).replace("T", " "));
         calendar.setTime(timestamp);
         calendar.add(Calendar.HOUR_OF_DAY, 7);
-        holder.tvTime.setText(activity.getResources().getString(R.string.order_at)+calendar.getTime().toString());
+        holder.tvTime.setText(activity.getResources().getString(R.string.order_at)+formatTime("HH:mm dd/MM/yyyy", calendar.getTime(), new Locale("vi", "VN")));
         holder.tvAddress.setText(order.getShippingAddress());
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -121,6 +124,18 @@ public class RecyclerViewOrderAdapter extends RecyclerView.Adapter<RecyclerViewO
                 activity.startActivityForResult(intent, order.getOrderStatus().equals("ordered") ? RequestCode.ORDER:RequestCode.ORDER_STATUS);
             }
         });
+    }
+
+    public static String formatTime(String timeFormat, Date time, Locale locale){
+//        String timeFormat = "HH:mm dd MMMM, yyyy";
+        SimpleDateFormat formatter;
+
+        try {
+            formatter = new SimpleDateFormat(timeFormat, locale);
+        } catch(Exception e) {
+            formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss", locale);
+        }
+        return formatter.format(time);
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

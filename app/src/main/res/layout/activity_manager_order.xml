@@ -18,6 +18,7 @@
             app:title="@string/order_info"
             app:titleTextColor="#FFFFFF"
             app:navigationIcon="@drawable/ic_arrow_back_ios_24"
+            app:menu="@menu/toolbar_order_info"
             android:id="@+id/toolbar">
         </com.google.android.material.appbar.MaterialToolbar>
     </com.google.android.material.appbar.AppBarLayout>

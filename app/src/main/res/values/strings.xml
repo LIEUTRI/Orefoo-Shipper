@@ -96,4 +96,7 @@
     <string name="confirm">Xác nhận</string>
     <string name="confirm_picked">Xác nhận đã lấy hàng và tiến hành giao.</string>
     <string name="need_provide_enough_info">Bạn cần cung cấp đầy đủ thông tin.</string>
+    <string name="confirm_open_maps">Bạn có cần chỉ đường không?</string>
+    <string name="maps">Bản đồ</string>
+    <string name="content_description_maps">directions</string>
 </resources>
