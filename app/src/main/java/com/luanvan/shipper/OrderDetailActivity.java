@@ -24,10 +24,14 @@ import com.luanvan.shipper.Adapter.RecyclerViewVictualAdapter;
 import com.luanvan.shipper.Fragments.ManagerFragment;
 import com.luanvan.shipper.components.Branch;
 import com.luanvan.shipper.components.RequestUrl;
+import com.luanvan.shipper.components.ResultsCode;
 import com.luanvan.shipper.components.Shared;
 import com.luanvan.shipper.components.Victual;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
@@ -145,6 +149,7 @@ public class OrderDetailActivity extends AppCompatActivity implements View.OnCli
 
     @SuppressLint("StaticFieldLeak")
     private class AcceptOrderTask extends AsyncTask<String,String,String> {
+        private int resultCode;
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -154,30 +159,48 @@ public class OrderDetailActivity extends AppCompatActivity implements View.OnCli
         @Override
         protected String doInBackground(String... strings) {
             HttpURLConnection connection = null;
+            BufferedReader reader = null;
             //http post
             try {
                 URL url = new URL(RequestUrl.ORDER + "/" + strings[0] + "/shipper/" + strings[1]);
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("PATCH");
                 connection.setRequestProperty("Content-Type", "application/json;charset=utf-8");
+                connection.setRequestProperty("Accept", "application/json;charset=utf-8");
                 connection.setRequestProperty("Authorization", token);
                 connection.setReadTimeout(10000);
                 connection.setConnectTimeout(15000);
                 connection.connect();
 
+                InputStream is;
                 int statusCode = connection.getResponseCode();
-                Log.i("statusCode", statusCode+" | request: "+url);
-                if (statusCode == 200) return "200";
+                if (statusCode >= 200 && statusCode < 400){
+                    resultCode = ResultsCode.SUCCESS;
+                    is = connection.getInputStream();
+                } else {
+                    resultCode = ResultsCode.FAILED;
+                    is = connection.getErrorStream();
+                }
 
-                return "-1";
+                reader = new BufferedReader(new InputStreamReader(is));
+
+                StringBuilder buffer = new StringBuilder();
+                String line = "";
+
+                while ((line = reader.readLine()) != null) {
+                    buffer.append(line).append("\n");
+                    Log.d("ResponseAcceptOrder", "> " + line);
+                }
+                return buffer.toString();
 
             } catch (SocketTimeoutException e) {
-                return "0";
+                resultCode = ResultsCode.SOCKET_TIMEOUT;
             } catch (IOException e){
-                return "-1";
+                resultCode = ResultsCode.IO_EXCEPTION;
             } finally {
                 if (connection != null) connection.disconnect();
             }
+            return "";
         }
 
         @Override
@@ -186,18 +209,21 @@ public class OrderDetailActivity extends AppCompatActivity implements View.OnCli
 
             progressBar.setVisibility(View.INVISIBLE);
 
-            if (s == null) return;
-            if (s.equals("200")){
-                Toast.makeText(OrderDetailActivity.this, getString(R.string.received_orders), Toast.LENGTH_LONG).show();
+            switch (resultCode){
+                case ResultsCode.SUCCESS:
+                    Toast.makeText(OrderDetailActivity.this, getString(R.string.received_orders), Toast.LENGTH_LONG).show();
 
-                Intent intent = new Intent();
-                intent.putExtra("consumer", consumer);
-                setResult(RESULT_OK);
-                finish();
-            } else if (s.equals("0")){
-                Toast.makeText(OrderDetailActivity.this, getString(R.string.socket_timeout), Toast.LENGTH_LONG).show();
-            } else {
-                Toast.makeText(OrderDetailActivity.this, getString(R.string.error), Toast.LENGTH_LONG).show();
+                    Intent intent = new Intent();
+                    intent.putExtra("consumer", consumer);
+                    setResult(RESULT_OK);
+                    finish();
+                    break;
+
+                case ResultsCode.SOCKET_TIMEOUT:
+                    Toast.makeText(OrderDetailActivity.this, getString(R.string.socket_timeout), Toast.LENGTH_LONG).show();
+                    break;
+
+                default: Toast.makeText(OrderDetailActivity.this, getString(R.string.error), Toast.LENGTH_LONG).show();
             }
         }
     }
