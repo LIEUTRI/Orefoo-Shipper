@@ -17,7 +17,7 @@
             app:navigationIcon="@drawable/ic_arrow_back_ios_24"
             app:title="@string/login"
             app:titleTextColor="#FFFFFF"
-            android:id="@+id/toolbarLogin" />
+            android:id="@+id/toolbar" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <LinearLayout

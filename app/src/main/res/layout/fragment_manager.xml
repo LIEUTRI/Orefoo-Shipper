@@ -9,6 +9,7 @@
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@color/colorPrimaryDark"
         android:id="@+id/layoutAppBar">
         <com.google.android.material.appbar.MaterialToolbar
             android:layout_width="match_parent"
@@ -16,51 +17,80 @@
             android:id="@+id/toolbar"
             app:title="@string/managerorder"
             app:titleTextColor="#FFFFFF"
-            app:navigationIcon="@drawable/ic_arrow_back_ios_24">
+            >
         </com.google.android.material.appbar.MaterialToolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:padding="10dp"
         android:layout_below="@id/layoutAppBar"
-        android:id="@+id/layoutProgressBar">
+        android:background="@color/extra_light_gray"
+        android:orientation="vertical"
+        android:weightSum="2">
 
-        <TextView
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/tvAcceptedOrders"
-            android:text="@string/accepted_orders"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:textColor="#000000" />
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            app:cardCornerRadius="5dp"
+            app:cardUseCompatPadding="true">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/layoutProgressBar1"
+                android:padding="10dp">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/tvAcceptedOrders"
+                    android:text="@string/accepted_orders"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="10dp"
+                    android:textColor="#000000" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/recyclerViewAccepted"
-            android:layout_below="@id/tvAcceptedOrders"
-            android:layout_above="@+id/tvPickedOrders"
-            android:paddingBottom="10dp"
-            android:paddingTop="5dp"/>
+                <androidx.recyclerview.widget.RecyclerView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/recyclerViewAccepted"
+                    android:layout_below="@id/tvAcceptedOrders"
+                    android:paddingBottom="10dp"
+                    android:layout_alignParentBottom="true"
+                    android:paddingTop="5dp"/>
+            </RelativeLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-        <TextView
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/tvPickedOrders"
-            android:text="@string/picked_orders"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:textColor="#000000"
-            android:layout_centerVertical="true"/>
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            app:cardCornerRadius="5dp"
+            app:cardUseCompatPadding="true">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/layoutProgressBar2"
+                android:padding="10dp">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/tvPickedOrders"
+                    android:text="@string/picked_orders"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:textColor="#000000"
+                    android:layout_marginBottom="10dp"/>
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/recyclerViewPicked"
-            android:layout_below="@id/tvPickedOrders"
-            android:layout_alignParentBottom="true"
-            android:paddingTop="5dp"/>
-    </RelativeLayout>
+                <androidx.recyclerview.widget.RecyclerView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/recyclerViewPicked"
+                    android:layout_below="@id/tvPickedOrders"
+                    android:layout_alignParentBottom="true"
+                    android:paddingTop="5dp"/>
+            </RelativeLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
 </RelativeLayout>

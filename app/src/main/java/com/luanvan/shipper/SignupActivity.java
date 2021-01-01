@@ -14,6 +14,7 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.google.android.material.appbar.MaterialToolbar;
 import com.luanvan.shipper.components.RequestUrl;
 import com.luanvan.shipper.components.ResultsCode;
 import com.luanvan.shipper.components.Shared;
@@ -36,6 +37,7 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
     private RelativeLayout layoutProgressBar;
     private EditText etUsername, etPassword, etConfirmPassword;
     private Button btnSignup;
+    private MaterialToolbar toolbar;
 
     public final String TAG = "SignupActivity";
     @Override
@@ -48,6 +50,7 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
         etPassword = findViewById(R.id.etPassword);
         etConfirmPassword = findViewById(R.id.etConfirmPassword);
         btnSignup = findViewById(R.id.btnSignup);
+        toolbar = findViewById(R.id.toolbar);
 
         progressBar = new ProgressBar(this, null, android.R.attr.progressBarStyleSmall);
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(100, 100);
@@ -56,6 +59,12 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
         progressBar.setVisibility(View.INVISIBLE);
 
         btnSignup.setOnClickListener(this);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
     }
 
     @SuppressLint("NonConstantResourceId")

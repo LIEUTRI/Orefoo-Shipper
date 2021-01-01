@@ -137,7 +137,17 @@ public class RevenueFragment extends Fragment {
         startToDay = formatTime("yyyy-MM-dd", today.getTime(), new Locale("vi", "VN"));
         startToDay += " 00:00:00";
         endToDay = formatTime("yyyy-MM-dd HH:mm:ss", new Date(), new Locale("vi", "VN"));
-        new GetRevenueTask(startToDay, endToDay, true);
+
+        String startToDayEncoded = "";
+        String endToDayEncoded = "";
+        try {
+            startToDayEncoded = URLEncoder.encode(startToDay, "utf-8");
+            endToDayEncoded = URLEncoder.encode(endToDay, "utf-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        new GetRevenueTask(startToDayEncoded, endToDayEncoded, true);
 
         ////////////////////////////////////////////////////////////////////////
         tvFromDay.setOnClickListener(new View.OnClickListener() {
@@ -160,7 +170,15 @@ public class RevenueFragment extends Fragment {
         ibSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new GetRevenueTask(fromDay, toDay, false);
+                String fromDayEncoded = "";
+                String toDayEncoded = "";
+                try {
+                    fromDayEncoded = URLEncoder.encode(fromDay, "utf-8");
+                    toDayEncoded = URLEncoder.encode(toDay, "utf-8");
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                new GetRevenueTask(fromDayEncoded, toDayEncoded, false);
             }
         });
 

@@ -16,6 +16,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.appbar.MaterialToolbar;
 import com.luanvan.shipper.components.RequestUrl;
 import com.luanvan.shipper.components.ResultsCode;
 import com.luanvan.shipper.components.Shared;
@@ -39,6 +40,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private EditText etUsername, etPassword;
     private Button btnLogin;
     private TextView tvGotoSignup;
+    private MaterialToolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +52,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         etPassword = findViewById(R.id.etPassword);
         btnLogin = findViewById(R.id.btnLogin);
         tvGotoSignup = findViewById(R.id.tvGotoSignup);
+        toolbar = findViewById(R.id.toolbar);
 
         progressBar = new ProgressBar(this, null, android.R.attr.progressBarStyleSmall);
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(100, 100);
@@ -59,6 +62,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         btnLogin.setOnClickListener(this);
         tvGotoSignup.setOnClickListener(this);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
     }
 
     @SuppressLint("NonConstantResourceId")

@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.luanvan.shipper.Adapter.RecyclerViewVictualAdapter;
 import com.luanvan.shipper.Fragments.ManagerFragment;
 import com.luanvan.shipper.components.Branch;
@@ -45,6 +46,7 @@ public class OrderDetailActivity extends AppCompatActivity implements View.OnCli
     private ProgressBar progressBar;
     private RecyclerView recyclerView;
     private TextView tvTotal, tvShippingFee, tvTotalFinal;
+    private MaterialToolbar toolbar;
 
     private String token;
     private int shipperId;
@@ -80,6 +82,7 @@ public class OrderDetailActivity extends AppCompatActivity implements View.OnCli
         tvTotal = findViewById(R.id.tvTotal);
         tvShippingFee = findViewById(R.id.tvShippingFee);
         tvTotalFinal = findViewById(R.id.tvTotalFinal);
+        toolbar = findViewById(R.id.toolbar);
 
         orderId = getIntent().getIntExtra("id", -1);
         totalPay = getIntent().getDoubleExtra("totalPay", 0);
@@ -130,6 +133,12 @@ public class OrderDetailActivity extends AppCompatActivity implements View.OnCli
 
         tvAccept.setOnClickListener(this);
         tvReject.setOnClickListener(this);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
     }
 
     @SuppressLint("NonConstantResourceId")

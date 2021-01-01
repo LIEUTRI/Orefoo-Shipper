@@ -22,6 +22,7 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.google.android.material.appbar.MaterialToolbar;
 import com.luanvan.shipper.Adapter.RecyclerViewOrderAdapter;
 import com.luanvan.shipper.R;
 import com.luanvan.shipper.components.Branch;
@@ -48,8 +49,8 @@ import java.util.ArrayList;
 public class ManagerFragment extends Fragment {
     public final String TAG = "ManagerFragment";
     private RecyclerView recyclerViewAccepted, recyclerViewPicked;
-    private RelativeLayout layoutProgressBar;
-    private ProgressBar progressBar;
+    private RelativeLayout layoutProgressBar1, layoutProgressBar2;
+    private ProgressBar progressBar1, progressBar2;
     private ArrayList<Order> orders = new ArrayList<>();
     private ArrayList<Order> orders2 = new ArrayList<>();
 
@@ -71,7 +72,8 @@ public class ManagerFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         recyclerViewAccepted = view.findViewById(R.id.recyclerViewAccepted);
         recyclerViewPicked = view.findViewById(R.id.recyclerViewPicked);
-        layoutProgressBar = view.findViewById(R.id.layoutProgressBar);
+        layoutProgressBar1 = view.findViewById(R.id.layoutProgressBar1);
+        layoutProgressBar2 = view.findViewById(R.id.layoutProgressBar2);
     }
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
@@ -86,9 +88,13 @@ public class ManagerFragment extends Fragment {
         // ProgressBar ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(100, 100);
         params.addRule(RelativeLayout.CENTER_IN_PARENT);
-        progressBar = new ProgressBar(getActivity(), null, android.R.attr.progressBarStyleSmall);
-        layoutProgressBar.addView(progressBar, params);
-        progressBar.setVisibility(View.VISIBLE);
+        progressBar1 = new ProgressBar(getActivity(), null, android.R.attr.progressBarStyleSmall);
+        progressBar2 = new ProgressBar(getActivity(), null, android.R.attr.progressBarStyleSmall);
+
+        layoutProgressBar1.addView(progressBar1, params);
+        layoutProgressBar2.addView(progressBar2, params);
+        progressBar1.setVisibility(View.INVISIBLE);
+        progressBar2.setVisibility(View.INVISIBLE);
 
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences(Shared.TOKEN, Context.MODE_PRIVATE);
         token = sharedPreferences.getString(Shared.KEY_BEARER, "");
@@ -128,7 +134,7 @@ public class ManagerFragment extends Fragment {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            progressBar.setVisibility(View.VISIBLE);
+            progressBar1.setVisibility(View.VISIBLE);
         }
 
         @Override
@@ -188,7 +194,7 @@ public class ManagerFragment extends Fragment {
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
 
-            progressBar.setVisibility(View.INVISIBLE);
+            progressBar1.setVisibility(View.INVISIBLE);
 
             if (s == null) return;
 
@@ -249,7 +255,7 @@ public class ManagerFragment extends Fragment {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            progressBar.setVisibility(View.VISIBLE);
+            progressBar2.setVisibility(View.VISIBLE);
         }
 
         @Override
@@ -309,7 +315,7 @@ public class ManagerFragment extends Fragment {
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
 
-            progressBar.setVisibility(View.INVISIBLE);
+            progressBar2.setVisibility(View.INVISIBLE);
 
             if (s == null) return;
 

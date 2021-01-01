@@ -84,6 +84,8 @@ public class RecyclerViewOrderAdapter extends RecyclerView.Adapter<RecyclerViewO
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (activity.getClass().getSimpleName().equals("DeliveryHistoryActivity")) return;
+
                 ArrayList<Victual> victuals = new ArrayList<>();
                 for (int index=0; index<order.getOrderItems().size(); index++){
                     victuals.add(new Victual(order.getOrderItems().get(index).getName(), order.getOrderItems().get(index).getImageUrl(),

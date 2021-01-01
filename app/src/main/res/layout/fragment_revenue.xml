@@ -13,7 +13,6 @@
             android:layout_height="wrap_content"
             app:title="@string/revenue_statistics"
             app:titleTextColor="#FFFFFF"
-            app:navigationIcon="@drawable/ic_arrow_back_ios_24"
             android:id="@+id/toolbar">
         </com.google.android.material.appbar.MaterialToolbar>
     </com.google.android.material.appbar.AppBarLayout>

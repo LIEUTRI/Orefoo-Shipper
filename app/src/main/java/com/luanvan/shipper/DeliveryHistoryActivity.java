@@ -19,6 +19,7 @@ import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.google.android.material.appbar.MaterialToolbar;
 import com.luanvan.shipper.Adapter.RecyclerViewOrderAdapter;
 import com.luanvan.shipper.Adapter.RecyclerViewVictualAdapter;
 import com.luanvan.shipper.components.Branch;
@@ -48,6 +49,7 @@ public class DeliveryHistoryActivity extends AppCompatActivity {
     private RelativeLayout layoutProgressBar;
     private ProgressBar progressBar;
     private Spinner spinner;
+    private MaterialToolbar toolbar;
 
     private int orderStatusId = 4;
     private String token;
@@ -61,6 +63,7 @@ public class DeliveryHistoryActivity extends AppCompatActivity {
         layoutProgressBar = findViewById(R.id.layoutProgressBar);
         recyclerView = findViewById(R.id.recyclerView);
         spinner = findViewById(R.id.spinner);
+        toolbar = findViewById(R.id.toolbar);
 
         // ProgressBar ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(100, 100);
@@ -99,6 +102,13 @@ public class DeliveryHistoryActivity extends AppCompatActivity {
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
 
+            }
+        });
+
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
             }
         });
     }

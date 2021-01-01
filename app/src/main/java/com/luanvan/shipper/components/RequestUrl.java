@@ -6,4 +6,5 @@ public class RequestUrl {
     public static final String LOGIN = "https://orefoo.herokuapp.com/login";
     public static final String ORDER = "https://orefoo.herokuapp.com/order";
     public static final String SHIPPER = "https://orefoo.herokuapp.com/shipper/";
+    public static final String CONSUMER = "https://orefoo.herokuapp.com/consumer/";
 }

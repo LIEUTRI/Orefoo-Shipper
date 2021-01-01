@@ -99,4 +99,6 @@
     <string name="confirm_open_maps">Bạn có cần chỉ đường không?</string>
     <string name="maps">Bản đồ</string>
     <string name="content_description_maps">directions</string>
+    <string name="consumer_info">Thông tin khách hàng</string>
+    <string name="token_expired">Token expired, Login again!</string>
 </resources>

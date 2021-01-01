@@ -18,7 +18,9 @@ import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.media.ExifInterface;
 import android.net.Uri;
@@ -48,6 +50,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.Target;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -93,6 +96,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
     private RelativeLayout layoutProgressBar;
     private EditText etFirstName, etLastName, etPhone, etEmail, etGender, etDOB, etDriverLicense, etIdCardNumber;
     private TextView tvName, tvPhone, tvUserStatus;
+    private MaterialToolbar toolbar;
 
     private Uri uriSavedImageFront, uriSavedImageBack;
     private Uri uriProfile;
@@ -156,6 +160,14 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
         tvName = findViewById(R.id.tvName);
         tvPhone = findViewById(R.id.tvPhone);
         tvUserStatus = findViewById(R.id.tvUserStatus);
+        toolbar = findViewById(R.id.toolbar);
+
+        // ProgressBar ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(100, 100);
+        params.addRule(RelativeLayout.CENTER_IN_PARENT);
+        progressBar = new ProgressBar(this, null, android.R.attr.progressBarStyleSmall);
+        layoutProgressBar.addView(progressBar, params);
+        progressBar.setVisibility(View.INVISIBLE);
 
         SharedPreferences sharedPreferences = getSharedPreferences(Shared.SHIPPER, MODE_PRIVATE);
         shipperId = sharedPreferences.getInt(Shared.KEY_SHIPPER_ID, -1);
@@ -272,9 +284,6 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
         storageRef = storage.getReference();
 
         /////////////////////////////////////////////////////////////////////////
-        progressBar = new ProgressBar(this, null, android.R.attr.progressBarStyleSmall);
-
-        /////////////////////////////////////////////////////////////////////////
         calendar = Calendar.getInstance();
 
         onDateSetListener = new DatePickerDialog.OnDateSetListener() {
@@ -303,18 +312,12 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
         tvSave.setOnClickListener(this);
         etDOB.setOnClickListener(this);
         ivChangePhoto.setOnClickListener(this);
-    }
-
-
-    private void showProgressBar(RelativeLayout layout, ProgressBar progressBar) {
-        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(100, 100);
-        params.addRule(RelativeLayout.CENTER_IN_PARENT);
-        layout.addView(progressBar, params);
-        progressBar.setVisibility(View.VISIBLE);
-    }
-
-    private void hideProgressBar(ProgressBar progressBar) {
-        progressBar.setVisibility(View.INVISIBLE);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
     }
 
     @SuppressLint("NonConstantResourceId")
@@ -361,7 +364,15 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
                 break;
 
             case R.id.tvSave:
+                if (etFirstName.getText().toString().equals("") || etLastName.getText().toString().equals("") || etPhone.getText().toString().equals("") ||
+                etEmail.getText().toString().equals("") || etGender.getText().toString().equals("") || etDOB.getText().toString().equals("") ||
+                etDriverLicense.getText().toString().equals("") || etIdCardNumber.getText().toString().equals("")){
+                    Toast.makeText(ManagerProfileActivity.this, getString(R.string.need_provide_enough_info), Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 progressBar.setVisibility(View.VISIBLE);
+                Toast.makeText(ManagerProfileActivity.this, "Updating......", Toast.LENGTH_SHORT).show();
 
                 if (uriProfile == null && uriSavedImageFront == null && uriSavedImageBack == null) {
                     //mean not change image
@@ -370,13 +381,8 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
                 }
 
                 uploadImage(uriProfile, TEMP_IMAGE_NAME_PROFILE);
-
-                if (ivSlotFront.getDrawable() == null || ivSlotBack.getDrawable() == null) {
-                    Toast.makeText(ManagerProfileActivity.this, getResources().getString(R.string.enough_images), Toast.LENGTH_LONG).show();
-                } else {
-                    uploadImage(uriSavedImageFront, TEMP_IMAGE_NAME1);
-                    uploadImage(uriSavedImageBack, TEMP_IMAGE_NAME2);
-                }
+//                uploadImage(uriSavedImageFront, TEMP_IMAGE_NAME1);
+//                uploadImage(uriSavedImageBack, TEMP_IMAGE_NAME2);
                 break;
 
             case R.id.etDOB:
@@ -496,9 +502,10 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
     }
 
     private void uploadImage(final Uri uriImage, final String newName) {
-        if (uriImage == null) return;
-
-        showProgressBar(layoutProgressBar, progressBar);
+        if (uriImage == null) {
+            Log.d(TAG, "uploadImage: uriImage null");
+            return;
+        }
 
         // location to save images in Firebase
         shipperImagesRef = storageRef.child("images/" + newName);
@@ -514,7 +521,6 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
-                hideProgressBar(progressBar);
                 Toast.makeText(ManagerProfileActivity.this, "Could not uploaded. Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
@@ -527,7 +533,6 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
             @Override
             public void onSuccess(Uri downloadUrl) {
                 Log.i("ManagerProfileActivity", "imageUrl: " + downloadUrl.toString());
-                Debug.writeLog(downloadUrl.toString());
 
                 if (fileName.contains("front")) {
                     idCardFront = downloadUrl.toString();
@@ -537,13 +542,19 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
                     profileImage = downloadUrl.toString();
                 }
 
+                if (idCardFront == null || idCardFront.length() < 1){
+                    uploadImage(uriSavedImageFront, TEMP_IMAGE_NAME1);
+                } else if (idCardBack == null || idCardBack.length() < 1){
+                    uploadImage(uriSavedImageBack, TEMP_IMAGE_NAME2);
+                } else if (profileImage == null || profileImage.length() < 1){
+                    uploadImage(uriProfile, TEMP_IMAGE_NAME_PROFILE);
+                }
+
                 if (idCardFront != null && idCardFront.length() > 1
                         && idCardBack != null && idCardBack.length() > 1
                         && profileImage != null && profileImage.length() > 1) {
                     // update profile task
                     new UpdateProfileTask().execute();
-                } else {
-                    Toast.makeText(ManagerProfileActivity.this, getString(R.string.need_provide_enough_info), Toast.LENGTH_LONG).show();
                 }
             }
         }).addOnFailureListener(new OnFailureListener() {
@@ -825,7 +836,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
             } catch (SocketTimeoutException e) {
                 return "0";
             } catch (IOException | JSONException e) {
-                e.printStackTrace();
+                return "-1";
             } finally {
                 try {
                     if (os != null) os.close();
@@ -834,8 +845,6 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
                 }
                 if (connection != null) connection.disconnect();
             }
-
-            return null;
         }
 
         @Override
@@ -873,6 +882,7 @@ public class ManagerProfileActivity extends AppCompatActivity implements View.On
                     }
                     setResult(Activity.RESULT_CANCELED);
                 } catch (JSONException e) {
+                    Toast.makeText(ManagerProfileActivity.this, getResources().getString(R.string.update_failed), Toast.LENGTH_LONG).show();
                     e.printStackTrace();
                 }
             }

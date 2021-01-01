@@ -360,19 +360,24 @@
                     android:contentDescription="@string/remove" />
             </RelativeLayout>
 
-            <TextView
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/tvSave"
-                android:text="@string/save_info"
-                android:background="@drawable/bg_btn_filled"
-                android:padding="10dp"
-                android:textSize="18sp"
-                android:fontFamily="sans-serif-condensed"
-                android:textColor="#FFFFFF"
-                android:gravity="center"
                 android:layout_below="@id/layoutCMNDFront"
-                android:layout_marginTop="10dp"/>
+                android:layout_marginTop="10dp"
+                >
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/tvSave"
+                    android:text="@string/save_info"
+                    android:background="@drawable/bg_btn_filled"
+                    android:padding="10dp"
+                    android:textSize="18sp"
+                    android:gravity="center"
+                    android:fontFamily="sans-serif-condensed"
+                    android:textColor="#FFFFFF" />
+            </RelativeLayout>
         </RelativeLayout>
     </androidx.core.widget.NestedScrollView>
 </RelativeLayout>

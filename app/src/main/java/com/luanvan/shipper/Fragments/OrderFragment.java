@@ -264,7 +264,7 @@ public class OrderFragment extends Fragment implements View.OnClickListener {
                     resultCode = ResultsCode.SUCCESS;
                     is = connection.getInputStream();
                 } else {
-                    resultCode = ResultsCode.FAILED;
+                    resultCode = statusCode;
                     is = connection.getErrorStream();
                 }
 
@@ -320,6 +320,13 @@ public class OrderFragment extends Fragment implements View.OnClickListener {
 
                 case ResultsCode.SOCKET_TIMEOUT:
                     Toast.makeText(getActivity(), getString(R.string.socket_timeout), Toast.LENGTH_SHORT).show();
+                    break;
+
+                case 422:
+                    Toast.makeText(getActivity(), getActivity().getResources().getString(R.string.token_expired), Toast.LENGTH_LONG).show();
+                    SharedPreferences.Editor editor = getActivity().getSharedPreferences(Shared.TOKEN, Context.MODE_PRIVATE).edit();
+                    editor.remove(Shared.KEY_BEARER);
+                    editor.apply();
                     break;
 
                 default:
@@ -495,6 +502,7 @@ public class OrderFragment extends Fragment implements View.OnClickListener {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            progressBar.setVisibility(View.VISIBLE);
         }
 
         @Override
